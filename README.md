@@ -23,7 +23,7 @@ Every country runs the **same code**. What makes an installation Senegal's is on
 | Country | Agency | File | Details |
 |---|---|---|---|
 | Senegal | ANACIM | `deployments/senegal.toml` | [docs/countries/senegal.md](docs/countries/senegal.md) |
-| Sierra Leone | SLMet | `deployments/sierra-leone.toml` | [docs/countries/sierra-leone.md](docs/countries/sierra-leone.md) |
+| Sierra Leone | — | `deployments/sierra-leone.toml` | [docs/countries/sierra-leone.md](docs/countries/sierra-leone.md) |
 
 Each country page says what is verified against what, the study settings, how to run the
 pipeline for that country, and the known limits of its data. Read it before quoting a
