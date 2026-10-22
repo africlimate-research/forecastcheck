@@ -228,7 +228,7 @@ def test_s9_the_committed_file_parses_and_holds_senegal():
     from verification import diagnostics, seasons, store
 
     settings._load.cache_clear()
-    assert settings.configured_countries() == ("senegal", "sierra leone")
+    assert settings.configured_countries() == ("kenya", "senegal", "sierra leone")
     assert settings.thresholds("temperature_max", "Senegal") == (
         37, 38, 39, 40, 41, 42, 43, 44, 45)
     assert settings.thresholds("temperature_min", "Senegal") == ()
@@ -253,6 +253,21 @@ def test_s9b_the_committed_file_holds_sierra_leone():
     assert tuple(settings.seasons("Sierra Leone")) \
         == seasons.SEASONS_BY_COUNTRY["Sierra Leone"] == ("ondj", "fmam", "jjas")
     assert seasons.season_months("ondj") == (10, 11, 12, 1)
+
+
+def test_s9c_the_committed_file_holds_kenya():
+    """Kenya's block: rainfall, not temperature, so its ladder is in mm/day."""
+    from verification import diagnostics, seasons, store
+
+    settings._load.cache_clear()
+    ladder = (1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60)
+    assert settings.thresholds("precipitation", "Kenya") == ladder
+    assert store.exceedance_thresholds("precipitation", "Kenya") == ladder
+    assert list(diagnostics.altitude_bands("Kenya")) == [
+        "all", "0-1000", "1000-2000", "2000-3000", ">3000"]
+    assert tuple(settings.seasons("Kenya")) == seasons.SEASONS_BY_COUNTRY["Kenya"] \
+        == ("ondj", "fmam", "jjas")
+    assert "chirps" in store.PRODUCTS
 
 
 # --------------------------------------------------------------------------- s10

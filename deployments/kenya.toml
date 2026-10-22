@@ -1,0 +1,7 @@
+# Kenya (KMD). Select it on a machine with:  echo kenya > .deployment
+#
+# The country is the only required key: it sets the map, the 47 counties, the seasons
+# and the data folder (data/kenya/). Study parameters (rain thresholds, altitude bands,
+# seasons) are in config/verification.toml under [Kenya.*].
+
+country = "Kenya"
