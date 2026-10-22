@@ -2,7 +2,7 @@
 # Authors: The africlimate AI team
 # SPDX-License-Identifier: MIT
 #
-# Run the whole verification pipeline for this branch's country, for both truth products:
+# Run the whole verification pipeline for SENEGAL (years and products below are Senegal's), for both truth products:
 # raw metrics -> IDR calibration -> calibrated metrics and threshold curves. It is the
 # runbook's §4 in one file, for when you want results rather than the step-by-step lesson.
 #

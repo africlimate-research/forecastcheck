@@ -283,7 +283,7 @@ def _verify_year(args, year, variable, target, obs_dem, want_threshold):
 def main():
     """Parse arguments, then for each model × lead compute, store, and plot the requested metrics."""
     from verification import config
-    config.apply_deployment_defaults()   # pin this branch's country/domain (env var still wins)
+    config.apply_deployment_defaults()   # seed this machine's country (.deployment); env var still wins
     ap = argparse.ArgumentParser(description="Forecast verification diagnostics.")
     _model_choices = list(d.MODELS) + [f"{m}-idr" for m in d.MODELS]
     ap.add_argument("--model", nargs="+", choices=_model_choices, default=["graphcast-idr"],

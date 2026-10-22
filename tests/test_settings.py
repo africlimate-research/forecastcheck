@@ -127,8 +127,7 @@ def test_s5_a_bad_file_raises_rather_than_falling_back(config_file, body, fragme
     """Every malformed shape stops the run, naming the country and key.
 
     A fallback here would be invisible: the run completes, writes a full set of curves,
-    and scores events the agency did not choose. ``deployment.toml`` may limp on because
-    a wrong country shows up immediately as an empty dashboard; this cannot.
+    and scores events the agency did not choose.
     """
     config_file(body)
     with pytest.raises(settings.SettingsError) as exc:

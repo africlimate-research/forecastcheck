@@ -259,7 +259,7 @@ def calibrate_lead(variable, model, lead_day, train_years, test_year, use_parall
 
 def main(argv=None) -> int:
     from verification import config
-    config.apply_deployment_defaults()   # pin this branch's country/domain (env var still wins)
+    config.apply_deployment_defaults()   # seed this machine's country (.deployment); env var still wins
     p = argparse.ArgumentParser(
         description="Produce calibrated IDR forecasts (crps/quantiles[/p_exceed]) for verification.")
     p.add_argument("--variable", default="precipitation", choices=list(_VARIABLE_SPEC),

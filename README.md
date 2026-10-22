@@ -1,123 +1,124 @@
-# ForecastCheck — Senegal (ANACIM)
+# ForecastCheck
 
-Verifies AI weather forecasts (**GraphCast**, **IFS**) for Senegal's national met agency:
-raw skill, IDR-calibrated skill and threshold curves, per region, per department and per
-season, in a local Streamlit dashboard. Everything runs from this repository on plain
-NetCDF under `data/` — no cloud credentials at runtime.
+Local verification and calibration of AI weather forecasts for national met agencies.
+
+ForecastCheck scores AI weather models (**GraphCast**, **IFS**, …) against observations
+for one country: raw skill, skill after **IDR calibration** (Isotonic Distributional
+Regression), and threshold curves (ROC, reliability, cost–loss), per region, per season
+and per altitude band, in a local Streamlit dashboard. Everything runs on your own
+machine from plain NetCDF files under `data/` — no cloud service at runtime.
 
 > Part of the [Forecast4Africa](https://forecast4africa.org) initiative by AfriClimate AI.
-> Each agency runs its own branch; what differs between them is `deployment.toml`,
-> `config/verification.toml`, the boundary files and the data — not the code.
 
 > **Want to contribute?** Please read [CONTRIBUTING.md](CONTRIBUTING.md) first: it explains
 > how we branch, open pull requests and keep `main` up to date.
 
-**Step-by-step setup: [`senegal-setup-run.md`](senegal-setup-run.md).** This page is the
-overview and the short version.
+---
+
+## Countries
+
+Every country runs the **same code**. What makes an installation Senegal's is one file,
+`deployments/{name}.toml`, plus its boundaries and settings — not a separate branch.
+
+| Country | Agency | File | Details |
+|---|---|---|---|
+| Senegal | ANACIM | `deployments/senegal.toml` | [docs/countries/senegal.md](docs/countries/senegal.md) |
+
+Each country page says what is verified against what, the study settings, how to run the
+pipeline for that country, and the known limits of its data. Read it before quoting a
+number.
 
 ---
 
-## What is verified against what
+## Installation
 
-**Daily maximum and minimum temperature** (`temperature_max`, `temperature_min`), at lead
-days 1, 3, 5 and 7. No precipitation, no gauges — everything is gridded.
-
-| | source | years |
-|---|---|---|
-| **Gridded truth** | `chirts` — CHIRTS, 0.05° | 2016–2024 |
-| | `era5` — ECMWF reanalysis, regridded to the same grid | 2016–2024 |
-| **Forecasts** | `graphcast` | 2016–2024 |
-| | `ifs` | 2018–2024 |
-
-Settings live in **`config/verification.toml`** under `[Senegal.*]`:
-
-| | |
-|---|---|
-| `temperature_max` thresholds | 37, 38 … 45 °C (nine rungs) |
-| `temperature_min` thresholds | none — crps and the deterministic metrics only |
-| Altitude bands | 0–25 / 25–50 / 50–100 / >100 m |
-| Seasons | `ndjf` Nov–Feb · `mamj` Mar–Jun · `jaso` Jul–Oct (plus `yearly`) |
-| Regions | 14 regions over 45 departments (`verification/assets/admin_boundaries/senegal/`) |
-
----
-
-## Quick start
-
-Needs [Miniforge](https://github.com/conda-forge/miniforge) (conda); no cloud account.
+Needs [Miniforge](https://github.com/conda-forge/miniforge) (conda). Works on Linux
+(including the DGX Spark) and macOS.
 
 ```bash
-git clone https://github.com/africlimate-research/Local_ForecastCheck.git
-cd Local_ForecastCheck && git checkout senegal-lforecastcheck
+git clone https://github.com/africlimate-research/forecastcheck.git
+cd forecastcheck
 
 conda env create -f environment.yml
 conda activate forecastcheck
+python -m pytest tests/          # confirms the installation; needs no data
 ```
 
-`deployment.toml` already says `country = "Senegal"`, so nothing else needs setting.
+Without conda, Python ≥ 3.11 and `pip install -r requirements.txt` work too.
 
-**Data** (`data/` is not in git — details, and the `--from` option for a local copy, in the
-runbook, §2):
+### Choose your country, once per machine
 
 ```bash
-./scripts/fetch_country.sh SEN senegal --apply                    # forecasts + CHIRTS + DEM
-./scripts/fetch_country.sh SEN senegal --product ERA5 --apply     # + ERA5
+echo senegal > .deployment       # the name of a file in deployments/
 ```
 
-**Pipeline** — three stages, in order; each reads what the previous one wrote. Senegal holds
-two truth products, so every run names one with `--product` (shown for `chirts`; repeat
-with `--product era5`). `--variable` is required too: the CLI default is precipitation.
-The runbook (§4) lists every command; this does all of them for both products:
+`.deployment` is not in git, so `git pull` never changes it. Every command and the
+dashboard then run as that country. To run as another country in one shell only, set
+`VERIFICATION_DEPLOYMENT=<name>`. A misspelt name stops with the list of countries that
+exist.
+
+---
+
+## Running it
+
+**1. Data.** `data/` is not in git. The country page explains how to fetch the forecasts,
+the observations and the elevation map for that country.
+
+**2. Pipeline** — three stages, in order; each reads what the previous one wrote. For
+example, Senegal's GraphCast Tmax against CHIRTS:
 
 ```bash
-./scripts/run_pipeline.sh
+python -m verification.run --model graphcast --variable temperature_max --product chirts \
+    --metric mae bias pearsonr spearmanr --lead-day 1 3 5 7 --year 2022      # raw skill
+python -m calibration.run  --model graphcast --variable temperature_max --product chirts \
+    --leads 1,3,5,7 --train-years 2016,2017,2018,2019,2020,2021 --test-year 2022  # IDR
+python -m verification.run --model graphcast-idr --variable temperature_max --product chirts \
+    --metric crps roc reliability cost_loss --lead-day 1 3 5 7 --year 2022   # calibrated
 ```
 
-`temperature_min` has no thresholds, so the calibrated pass computes `crps` only for it.
+`--product` names the truth when a country holds more than one (the run stops and lists
+them if you leave it out). The country page gives the exact commands — years, models and
+products — for that country.
 
-**Dashboard:**
+**3. Dashboard:**
 
 ```bash
-streamlit run ui/app.py                   # http://localhost:8501
+streamlit run ui/app.py          # http://localhost:8501
 ```
 
-Restart Streamlit after generating new files — discovery is cached per process.
+Restart Streamlit after generating new files — discovery is cached per process. On a
+remote machine, forward the port: `ssh -L 8501:localhost:8501 <user>@<host>`.
 
 ---
 
 ## How it works
 
-Three stages connected only by the on-disk path scheme (`verification/store.py` owns it):
+Three stages, connected only by the on-disk path scheme (`verification/store.py` owns it):
 
 ```
-data/senegal/forecast/gridded/{variable}/{year}/{model}/{lead}h.nc
-data/senegal/truth/{chirts,era5}/gridded/{variable}/{year}.nc
-data/senegal/idr/{product}/gridded/{variable}/{test_year}/{model}/{lead}h.nc
-data/senegal/diagnostics/{model}/{variable}/{product}/gridded/{metric}/{year}/…/{lead}h.nc
+data/{country}/forecast/gridded/{variable}/{year}/{model}/{lead}h.nc
+data/{country}/truth/{product}/gridded/{variable}/{year}.nc
+data/{country}/idr/{product}/gridded/{variable}/{test_year}/{model}/{lead}h.nc
+data/{country}/diagnostics/{model}/{variable}/{product}/gridded/{metric}/{year}/…/{lead}h.nc
 ```
 
-- **`calibration/`** — Isotonic Distributional Regression, one fit per grid cell. Writes
-  calibrated `crps`, quantiles, `pit` and `p_exceed` at the configured thresholds.
-- **`verification/`** — `verification.run`. Raw tokens (`graphcast`) get `mae`, `bias`,
-  `pearsonr`, `spearmanr`; `-idr` tokens get `crps` and the `roc` / `reliability` /
-  `cost_loss` curves.
-- **`ui/`** — the dashboard offers only what exists on disk, and shows both truth products
-  side by side.
+- **`calibration/`** — Isotonic Distributional Regression, one fit per grid cell (or per
+  gauge). Writes calibrated `crps`, quantiles, `pit` and `p_exceed` at the configured
+  thresholds.
+- **`verification/`** — `verification.run`. Raw model tokens (`graphcast`) get `mae`,
+  `bias`, `pearsonr`, `spearmanr`; calibrated `-idr` tokens get `crps` and the `roc` /
+  `reliability` / `cost_loss` curves.
+- **`ui/`** — the dashboard offers only what exists on disk.
 
-Curves are pooled **once**, per department, and every region (and the country) is summed
-from those counts at read time, so regions and seasons need no extra runs. To write
-per-region / per-season curve files explicitly:
+Curves are pooled **once**, per smallest admin unit, and every region (and the country) is
+summed from those counts at read time, so regions and seasons need no extra runs.
 
-```bash
-python -m verification.run --model graphcast-idr --variable temperature_max --metric roc \
-    --year 2022 --product chirts \
-    --region Senegal "Dakar (region)" Podor --season yearly ndjf mamj jaso
-```
+### Study settings — `config/verification.toml`
 
-A department named like its region is qualified: `Dakar (region)` / `Dakar (department)`.
+Thresholds, altitude bands and seasons, per country under `[<Country>.*]`, editable
+without touching Python. They are stored axes, so a change needs a re-run:
 
-### When you must re-run
-
-| changed in `config/verification.toml` | re-run |
+| changed | re-run |
 |---|---|
 | `thresholds` | `calibration.run` **and** `verification.run` |
 | `altitude_bands` | `verification.run` |
@@ -135,40 +136,37 @@ naming the country and key. Old result files are not deleted; they stop being se
 | `calibration/` | IDR calibration — `calibration.run` (gridded), `calibration.run_station` (gauges) |
 | `verification/` | diagnostics CLI and engine; `store.py` paths, `admin.py` region hierarchy, `curves.py` region/season roll-up |
 | `ui/` | Streamlit dashboard (`ui/app.py`) |
-| `config/verification.toml` | thresholds, altitude bands, seasons |
-| `deployment.toml` | this branch's country |
-| `scripts/` | data fetch (`fetch_country.sh`), whole pipeline (`run_pipeline.sh`) |
+| `deployments/` | one file per country |
+| `config/verification.toml` | thresholds, altitude bands, seasons, per country |
+| `docs/countries/` | one page per country |
+| `scripts/` | data fetch; `run_pipeline.sh` (Senegal's whole pipeline in one script) |
 | `tools/compare_runs.py` | zero-tolerance diff of two output trees |
 | `tests/` | test suite |
 
 ## Tests
 
 ```bash
-python -m pytest tests/                 # or run any file directly: python tests/test_ui.py
+python -m pytest tests/                 # or run a file directly: python tests/test_ui.py
 ```
 
-Checks that need real data skip unless `VERIFICATION_DATA_ROOT` points at it.
+The suite runs as no country, whatever `.deployment` says, so it means the same on every
+machine. Checks that need real data skip unless `VERIFICATION_DATA_ROOT` points at it.
 
-## Onboarding another country
+## Adding a country
 
-No code changes: a `deployment.toml` (`country = "<Country>"`, a Natural Earth name, plus a
-row in `verification/regions.py::REGION_COUNTRIES`), its boundaries and a `regions.toml`
-manifest under `verification/assets/admin_boundaries/<country>/`, a `[<Country>.*]` section
-in `config/verification.toml`, its truth products in `verification/store.py::PRODUCTS`, and
-the `data/<country>/` tree above.
+No code changes — one pull request with:
 
-## Known limits of the Senegal data
+1. `deployments/<name>.toml` with `country = "<Country>"` (a Natural Earth name), and the
+   name added to `tests/test_deployments.py::test_d7`;
+2. a row in `verification/regions.py::REGION_COUNTRIES`;
+3. its boundaries and a `regions.toml` manifest under
+   `verification/assets/admin_boundaries/<country>/`;
+4. a `[<Country>.*]` section in `config/verification.toml`;
+5. its truth products in `verification/store.py::PRODUCTS`, if new;
+6. a page in `docs/countries/`, and a row in the table above.
 
-Read once before quoting a number — full list in the
-[runbook](senegal-setup-run.md#known-limits-of-this-data).
-
-- **ERA5 is a model, not an observation**, and runs ~1.3 °C below CHIRTS here; GraphCast's
-  Tmin bias even changes sign between the two. Always say which truth a figure came from.
-- **A rare rung's AUC flatters** — read reliability and cost-loss for the top thresholds.
-- **IFS starts in 2018**, GraphCast in 2016: compare calibrated models on the same
-  training years.
-- The Dakar departments are only a few 0.05° cells each (Guediawaye perhaps none), too
-  few to carry a threshold curve.
+`tests/test_deployments.py` checks that every country file is complete. Open an issue with
+the *Add a country* template first if you would like help.
 
 ## Contact
 

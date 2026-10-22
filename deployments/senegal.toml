@@ -1,0 +1,7 @@
+# Senegal (ANACIM). Select it on a machine with:  echo senegal > .deployment
+#
+# The country is the only required key: it sets the map, the regions and departments,
+# the seasons and the data folder (data/senegal/). Study parameters (thresholds,
+# altitude bands, seasons) are in config/verification.toml under [Senegal.*].
+
+country = "Senegal"
