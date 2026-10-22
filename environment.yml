@@ -10,5 +10,7 @@ channels:
 dependencies:
   - python=3.11
   - pip
+  # gcloud, which scripts/fetch_country.sh uses to read the data bucket.
+  - google-cloud-sdk
   - pip:
       - -r requirements.txt

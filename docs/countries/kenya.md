@@ -14,6 +14,15 @@ echo kenya > .deployment
 | **Forecasts** | `graphcast` | 2016–2026 |
 | | `ifs` | 2018–2026, **no 2023** |
 
+## Get the data
+
+Kenya's data is not in the public bucket yet, so `deployments/kenya.toml` has no
+`data_source`. Until it is, fetch from a local copy of the country folder:
+
+```bash
+./scripts/fetch_country.sh --from /path/to/KEN-local-engine --apply
+```
+
 ## Settings
 
 In **`config/verification.toml`** under `[Kenya.*]`:

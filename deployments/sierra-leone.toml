@@ -5,3 +5,6 @@
 # altitude bands, seasons) are in config/verification.toml under ["Sierra Leone".*].
 
 country = "Sierra Leone"
+
+# Where this country's public data lives, read only by scripts/fetch_country.sh.
+data_source = "gs://aim4scale_training_2026/demo5/SLE-local-engine"
