@@ -1,0 +1,50 @@
+name: Activity or Deliverable
+description: A work package activity, deliverable, or outcome
+title: "[Programme][WP]: "
+body:
+  - type: checkboxes
+    id: programme
+    attributes:
+      label: Programme(s)
+      description: Check all that apply — most issues will only need one
+      options:
+        - label: Forecast4Africa
+        - label: FineCast
+        - label: ImvulaNet
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      options: [Activity, Deliverable, Outcome]
+    validations:
+      required: true
+  - type: input
+    id: wp
+    attributes:
+      label: Work Package
+      placeholder: "e.g. FineCast WP2, ImvulaNet WP1"
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: Owner
+    validations:
+      required: true
+  - type: input
+    id: due_date
+    attributes:
+      label: Due date
+      placeholder: "YYYY-MM-DD"
+  - type: textarea
+    id: depends_on
+    attributes:
+      label: Depends on
+      description: "Format: repo#issue, plus a one-line plain-English note. Leave blank if none."
+      placeholder: "e.g. ARC_Data#12 — waiting on WRF hindcast delivery"
+  - type: textarea
+    id: definition_of_done
+    attributes:
+      label: Definition of done

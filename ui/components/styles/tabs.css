@@ -1,0 +1,98 @@
+/* ==========================================================================
+   tabs.css  —  AfriClimate AI  ·  unified tab styling
+   ========================================================================== */
+
+:root {
+  --tab-font:       'Inter', sans-serif;
+  --tab-radius:     14px;
+  --tab-transition: 0.15s ease;
+
+  --tab-track-bg:      #e8ecef;
+  --tab-track-border:  #bac7c9;
+
+  --tab-inactive-text: #6B7280;
+  --tab-inactive-bg:   transparent;
+  --tab-hover-bg:      rgba(10, 153, 56, 0.08);
+  --tab-hover-text:    #2e7d33;
+
+  --tab-active-bg:     #ffffff;
+  --tab-active-text:   #171d1a;
+  --tab-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+
+  --tab-green: #0a9938;
+  --tab-blue:  #213b7d;
+}
+
+/* ── Tab list track ───────────────────────────────────────────────────────── */
+div[data-testid="stTabs"] > div[role="tablist"] {
+  background:    var(--tab-track-bg) !important;
+  border:        1.5px solid var(--tab-track-border) !important;
+  border-radius: var(--tab-radius) !important;
+  padding:       4px !important;
+  gap:           2px !important;
+  box-shadow:    0 2px 10px rgba(0, 0, 0, 0.10),
+                 inset 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+  position:      sticky !important;
+  top:           93px !important;
+  z-index:       999 !important;
+}
+
+/* ── All tab buttons — base ──────────────────────────────────────────────── */
+div[data-testid="stTabs"] button[role="tab"] {
+  font-family:    var(--tab-font) !important;
+  font-size:      0.73rem !important;
+  font-weight:    600 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  color:          var(--tab-inactive-text) !important;
+  background:     var(--tab-inactive-bg) !important;
+  border:         none !important;
+  border-radius:  calc(var(--tab-radius) - 2px) !important;
+  padding:        8px 20px !important;
+  white-space:    nowrap !important;
+  transition:     color      var(--tab-transition),
+                  background var(--tab-transition),
+                  box-shadow var(--tab-transition) !important;
+}
+
+/* ── Hover ────────────────────────────────────────────────────────────────── */
+div[data-testid="stTabs"] button[role="tab"]:not([aria-selected="true"]):hover {
+  color:      var(--tab-hover-text) !important;
+  background: var(--tab-hover-bg) !important;
+}
+
+/* ── Active ───────────────────────────────────────────────────────────────── */
+div[data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
+  color:      var(--tab-active-text) !important;
+  background: var(--tab-active-bg) !important;
+  font-weight: 700 !important;
+  box-shadow: var(--tab-active-shadow) !important;
+}
+
+/* Active colour per position — 1st tab green, 2nd blue, rest neutral ───────*/
+div[data-testid="stTabs"] button[role="tab"]:nth-child(1)[aria-selected="true"] {
+  color: #2e7d33 !important;
+}
+div[data-testid="stTabs"] button[role="tab"]:nth-child(2)[aria-selected="true"] {
+  color: var(--tab-blue) !important;
+}
+
+/* ── Hide Streamlit's own tab indicator ─────────────────────────────────── */
+[data-baseweb="tab-highlight"],
+[data-baseweb="tab-border"] { display: none !important; }
+
+/* ── Tab panel ────────────────────────────────────────────────────────────── */
+div[data-testid="stTabs"] div[role="tabpanel"] {
+  border:        1.5px solid var(--tab-track-border) !important;
+  border-top:    none !important;
+  border-radius: 0 0 var(--tab-radius) var(--tab-radius) !important;
+  padding:       20px 16px !important;
+  background:    #ffffff !important;
+  box-shadow:    0 3px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ── Focus ring ───────────────────────────────────────────────────────────── */
+div[data-testid="stTabs"] button[role="tab"]:focus-visible {
+  outline:        2px solid var(--tab-green) !important;
+  outline-offset: 2px !important;
+}

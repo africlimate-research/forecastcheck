@@ -1,0 +1,135 @@
+/* ==========================================================================
+   verification.css  —  AfriClimate AI page-level layout
+   Font: Inter  ·  Background: Off-White #f1f1f1
+   ========================================================================== */
+
+:root {
+  --page-font:   'Inter', sans-serif;
+  --page-bg:     #f1f1f1;
+  --page-border: #bac7c9;
+  --page-text:   #171d1a;
+  --page-muted:  #4B5563;
+  --page-green:  #0a9938;
+}
+
+/* ── Hide unused sidebar toggle ──────────────────────────────────────────── */
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapsedControl"] {
+  display: none !important;
+}
+
+/* ── Streamlit's built-in top header strip ───────────────────────────────────
+   The app draws its own branded header, so we don't want Streamlit's band to
+   reserve ~3.75rem or paint a background bar. But we DO want its toolbar (the
+   Deploy button + ⋮ main menu + status) to stay reachable. So instead of hiding
+   the whole header, make it transparent and click-through — it floats over the
+   top with no layout shift — and re-enable pointer events on the toolbar only,
+   so the controls appear at the top-right without blocking the page beneath.  */
+header[data-testid="stHeader"] {
+  background:      transparent !important;
+  box-shadow:      none        !important;
+  pointer-events:  none        !important;
+  height:          auto        !important;
+  min-height:      0           !important;
+}
+header[data-testid="stHeader"] [data-testid="stToolbar"],
+header[data-testid="stHeader"] [data-testid="stToolbarActions"],
+header[data-testid="stHeader"] .stAppToolbar,
+header[data-testid="stHeader"] [data-testid="stMainMenu"],
+header[data-testid="stHeader"] [data-testid="stStatusWidget"] {
+  pointer-events: auto !important;
+}
+/* Pin the toolbar to the very top-right so it sits above the branded header
+   instead of overlapping it. */
+header[data-testid="stHeader"] [data-testid="stToolbar"] {
+  top:            0        !important;
+  right:          0.25rem  !important;
+  padding-top:    0        !important;
+  align-items:    flex-start !important;
+}
+
+/* ── Collapse invisible helper elements ──────────────────────────────────────
+   CSS/favicon injections and the height-0 heartbeat iframe render before the
+   banner; each is an element container that still contributes the vertical
+   block's ~1rem flex gap, stacking into blank space at the top of the page.
+   Hide containers whose only rendered content is a <style>/<link> tag or a
+   zero-height iframe, so the banner is the first thing that occupies space.  */
+[data-testid="stElementContainer"]:has([data-testid="stMarkdownContainer"] > style:only-child),
+[data-testid="stElementContainer"]:has([data-testid="stMarkdownContainer"] > link:only-child),
+[data-testid="stElementContainer"]:has(iframe[height="0"]),
+.element-container:has([data-testid="stMarkdownContainer"] > style:only-child),
+.element-container:has([data-testid="stMarkdownContainer"] > link:only-child),
+.element-container:has(iframe[height="0"]) {
+  display: none !important;
+}
+
+/* ── Page container — centered, max-width cap for ultra-wide screens ─────── */
+.block-container {
+  padding-top:    0.5rem !important;
+  padding-bottom: 0 !important;
+  margin-top:     0 !important;
+  margin-bottom:  0 !important;
+  padding-left:   4rem !important;
+  padding-right:  4rem !important;
+  max-width:      1700px !important;
+  margin-left:    auto !important;
+  margin-right:   auto !important;
+  font-family:    var(--page-font) !important;
+}
+
+/* Zero out Streamlit's own bottom bar */
+[data-testid="stBottom"],
+[data-testid="stBottomBlockContainer"] {
+  display:    none !important;
+  height:     0    !important;
+  min-height: 0    !important;
+}
+
+/* ── Window-level scrolling ─────────────────────────────────────────────────
+   Make html the scroll container so position:sticky works from the viewport
+   and the 100vw footer can break out of block-container without clipping.   */
+html {
+  overflow-x: hidden !important;
+  overflow-y: auto   !important;
+}
+body,
+[data-testid="stApp"],
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"],
+[data-testid="stMainBlockContainer"],
+[data-testid="stVerticalBlock"],
+[data-testid="stVerticalBlockBorderWrapper"],
+[data-testid="stTabs"],
+.element-container,
+[data-testid="stMarkdown"] {
+  overflow: visible !important;
+}
+[data-testid="stApp"] {
+  min-height: 100vh !important;
+  height:     auto  !important;
+}
+
+/* ── Headings ────────────────────────────────────────────────────────────── */
+.stHeading h1 {
+  font-family:    var(--page-font) !important;
+  font-weight:    700 !important;
+  color:          var(--page-text) !important;
+  margin-bottom:  0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* ── Caption ─────────────────────────────────────────────────────────────── */
+.stCaption {
+  font-family:   var(--page-font) !important;
+  font-size:     0.75rem !important;
+  color:         var(--page-muted) !important;
+  margin-top:    -10px !important;
+  margin-bottom: -25px !important;
+}
+
+/* ── Divider ─────────────────────────────────────────────────────────────── */
+hr {
+  border-top:    1px solid var(--page-border) !important;
+  margin-top:    0 !important;
+  margin-bottom: 20px !important;
+}

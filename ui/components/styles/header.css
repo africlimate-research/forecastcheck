@@ -1,0 +1,166 @@
+/* ==========================================================================
+   header.css  —  AfriClimate AI brand-aligned header
+   ========================================================================== */
+
+:root {
+  --hdr-font:     'Inter', sans-serif;
+  --hdr-green:    #0a9938;
+  --hdr-fern:     #2e7d33;
+  --hdr-blue:     #213b7d;
+  --hdr-black:    #171d1a;
+  --hdr-muted:    #4B5563;
+  --hdr-border:   #bac7c9;
+  --hdr-bg:       #ffffff;
+  --hdr-offwhite: #f1f1f1;
+  --hdr-radius:   14px;
+}
+
+.hdr-wrapper {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  background:      var(--hdr-bg);
+  border:          1px solid var(--hdr-border);
+  border-top:      4px solid var(--hdr-green);
+  border-radius:   var(--hdr-radius);
+  padding:         16px 28px;
+  margin-bottom:   8px;
+  box-shadow:      0 4px 16px rgba(23,29,26,0.10);
+  position:        sticky;
+  top:             0;
+  z-index:         1000;
+}
+
+.hdr-left {
+  display:     flex;
+  align-items: center;
+  gap:         16px;
+}
+
+.hdr-logo {
+  width:         48px;
+  height:        48px;
+  border-radius: 14px;
+  border:        1px solid var(--hdr-border);
+  object-fit:    contain;
+  background:    var(--hdr-offwhite);
+  padding:       4px;
+  flex-shrink:   0;
+}
+
+.hdr-logo-fallback {
+  width:           48px;
+  height:          48px;
+  border-radius:   8px;
+  border:          1px solid var(--hdr-border);
+  background:      var(--hdr-offwhite);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       1.5rem;
+  flex-shrink:     0;
+}
+
+.hdr-titles {
+  display:        flex;
+  flex-direction: column;
+  gap:            1px;
+}
+
+.hdr-org {
+  font-family:    var(--hdr-font);
+  font-size:      0.58rem;
+  font-weight:    700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color:          var(--hdr-green);
+  margin:         0;
+}
+
+.hdr-title {
+  font-family: var(--hdr-font);
+  font-size:   1.2rem;
+  font-weight: 700;
+  color:       var(--hdr-black);
+  margin:      0;
+  line-height: 1.25;
+}
+
+.hdr-title span { color: var(--hdr-blue); }
+
+.hdr-subtitle {
+  font-family: var(--hdr-font);
+  font-size:   0.67rem;
+  color:       var(--hdr-muted);
+  margin:      3px 0 0 0;
+  line-height: 1.4;
+}
+
+.hdr-right {
+  display:        flex;
+  flex-direction: column;
+  align-items:    flex-end;
+  gap:            8px;
+}
+
+.hdr-right-inner {
+  display:     flex;
+  align-items: center;
+  gap:         14px;
+}
+
+.hdr-badges {
+  display:        flex;
+  flex-direction: column;
+  align-items:    flex-end;
+  gap:            6px;
+}
+
+.hdr-badge {
+  display:        inline-flex;
+  align-items:    center;
+  gap:            6px;
+  background:     rgba(10,153,56,0.08);
+  border:         1px solid rgba(10,153,56,0.3);
+  border-radius:  999px;
+  padding:        3px 12px;
+  font-family:    var(--hdr-font);
+  font-size:      0.62rem;
+  font-weight:    600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color:          var(--hdr-fern);
+  white-space:    nowrap;
+}
+
+.hdr-badge-warm {
+  background: rgba(33,59,125,0.08);
+  border:     1px solid rgba(33,59,125,0.3);
+  color:      var(--hdr-blue);
+}
+
+.hdr-dot {
+  width:         6px;
+  height:        6px;
+  border-radius: 50%;
+  background:    currentColor;
+  animation:     hdr-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes hdr-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);   }
+  50%       { opacity: 0.4; transform: scale(0.75); }
+}
+
+.hdr-logo-f4a {
+  height:        48px;
+  width:         auto;
+  max-width:     130px;
+  border-radius: 10px;
+  border:        1px solid rgba(242,176,41,0.35);
+  object-fit:    contain;
+  background:    var(--hdr-offwhite);
+  padding:       5px 10px;
+  flex-shrink:   0;
+  box-shadow:    0 2px 8px rgba(242,176,41,0.10);
+}

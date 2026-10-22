@@ -1,0 +1,14 @@
+# Conda environment for ForecastCheck. Works with Miniforge on macOS, Linux and the
+# DGX Spark (aarch64). Python comes from conda-forge; the pinned libraries come from
+# requirements.txt, so there is one list of versions to keep up to date, not two.
+#
+#   conda env create -f environment.yml
+#   conda activate forecastcheck
+name: forecastcheck
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - -r requirements.txt

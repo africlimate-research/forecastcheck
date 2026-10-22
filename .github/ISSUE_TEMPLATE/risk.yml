@@ -1,0 +1,43 @@
+name: Risk
+description: Log a programme risk
+title: "[RISK]: "
+body:
+  - type: checkboxes
+    id: programme
+    attributes:
+      label: Programme(s) affected
+      options:
+        - label: Forecast4Africa
+        - label: FineCast
+        - label: ImvulaNet
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options: [Technical, Programme, Institutional, Communications, Sustainability]
+    validations:
+      required: true
+  - type: dropdown
+    id: likelihood
+    attributes:
+      label: Likelihood
+      options: [Low, Medium, High]
+    validations:
+      required: true
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact
+      options: [Low, Medium, High]
+    validations:
+      required: true
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: Mitigation
+  - type: input
+    id: owner
+    attributes:
+      label: Owner

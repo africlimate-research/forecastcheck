@@ -1,0 +1,50 @@
+# ForecastCheck — Senegal study parameters, editable without touching Python.
+#
+# Every section is optional: remove one and the code default applies. A section
+# REPLACES the default rather than merging with it, so list every value you want.
+# A malformed entry stops the run with a message naming the key.
+#
+# These are stored axes, not display filters. After a change, re-run:
+#   thresholds      calibration.run AND verification.run
+#   altitude_bands  verification.run
+#   seasons         verification.run (--season, one run per window)
+# Old result files are kept, but stop being selected.
+
+
+# Exceedance thresholds for the ROC / reliability / cost-loss curves.
+#   <variable> = [ascending values]   temperature in degC
+#   An empty list [] switches the threshold curves off for that variable.
+#
+# Sahelian heat: 40 degC falls on ~20% of CHIRTS cell-days here, so the ladder runs
+# to 45. Check a new rung holds enough events against every truth product (ERA5
+# clips extremes ~1.3 degC below CHIRTS); a rare rung's AUC flatters — read
+# reliability and cost-loss for it.
+[Senegal.thresholds]
+temperature_max = [37, 38, 39, 40, 41, 42, 43, 44, 45]
+temperature_min = []    # warm nights track monsoon cloud, not heat
+
+
+# Elevation strata, in metres, half-open [low, high). Use [low, "inf"] for the top band.
+# "all" (every land cell) is added automatically — do not list it.
+# Senegal is flat (median 48 m, max 391 m), so the bands are tens of metres.
+[Senegal.altitude_bands]
+"0-25"   = [0, 25]          # coast, delta, Niayes
+"25-50"  = [25, 50]         # western plains
+"50-100" = [50, 100]        # groundnut basin
+">100"   = [100, "inf"]     # eastern rise
+
+
+# Seasons the curves are pooled over. "yearly" is always offered; do not define it.
+#   The slug ([Senegal.seasons.<slug>]) becomes a path segment: lowercase letters,
+#   digits and underscores, and it must not match a region or department name.
+#   A cross-year window is written in window order, e.g. [11, 12, 1, 2]; all its
+#   months belong to the SAME verification year.
+[Senegal.seasons.ndjf]
+months = [11, 12, 1, 2]
+label  = "NDJF (Nov–Feb)"        # cool dry season (harmattan)
+[Senegal.seasons.mamj]
+months = [3, 4, 5, 6]
+label  = "MAMJ (Mar–Jun)"        # hot dry season — the heat peak
+[Senegal.seasons.jaso]
+months = [7, 8, 9, 10]
+label  = "JASO (Jul–Oct)"        # rainy season (hivernage)

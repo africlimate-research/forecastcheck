@@ -1,0 +1,59 @@
+# Tool configuration only. This repository is not a distributable package:
+# the one supported installation is a virtualenv at the repo root with
+# `pip install -r requirements.txt` (see README.md), and both the pipeline
+# CLIs (python -m calibration.run / verification.run) and the dashboard
+# (streamlit run ui/app.py) run from the repo root.
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.0",
+    "pytest>=8.0.0",
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+preview = true
+explicit-preview-rules = true
+# all rules: https://docs.astral.sh/ruff/rules/
+extend-select = ["E501", "W", "I", "CPY001", "PGH", "RUF", "TID252"]
+ignore = [
+    # do not assign a lambda expression, use a def
+    "E731",
+    # do not use variables named 'l', 'O', or 'I'
+    "E741",
+    # E721 gives many false positives
+    "E721",
+    # Local variable assigned but never used
+    "F841",
+    # some RUF rules trigger too many changes
+    "RUF002",
+    "RUF003",
+    "RUF005",
+    "RUF012",
+    "RUF015",
+    "RUF021",
+    # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+    "W191",
+    "E111",
+    "E114",
+    "E117",
+    "D206",
+    "D300",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    "COM812",
+    "COM819",
+]
+
+[tool.ruff.lint.flake8-copyright]
+notice-rgx = "\\#\\ Authors:\\ The\\ africlimate\\ AI\\ team\\\r?\\\n\\#\\ SPDX\\-License\\-Identifier:\\ MIT"
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.isort]
+known-first-party = ["calibration", "verification", "ui"]

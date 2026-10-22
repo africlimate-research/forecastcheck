@@ -1,0 +1,161 @@
+/* ==========================================================================
+   filters.css  —  AfriClimate AI brand-aligned sidebar filters
+   Primary accent: Jungle Green #0a9938
+   Contrast ratios all ≥ 4.5 : 1 (WCAG AA)
+   ========================================================================== */
+
+:root {
+  --filter-bg:           #ffffff;
+  --filter-bg-hover:     rgba(10, 153, 56, 0.05);
+  --filter-border:       #bac7c9;
+  --filter-border-focus: #0a9938;
+  --filter-text:         #171d1a;
+  --filter-text-muted:   #4B5563;
+  --filter-accent:       #0a9938;
+  --filter-accent-dark:  #2e7d33;
+  --filter-accent-soft:  rgba(10, 153, 56, 0.08);
+  --filter-tag-bg:       rgba(10, 153, 56, 0.09);
+  --filter-tag-text:     #2e7d33;    /* 5.1:1 on white — AA ✓ */
+  --filter-tag-border:   rgba(10, 153, 56, 0.3);
+  --filter-radius:       14px;
+  --filter-font:         'Inter', sans-serif;
+  --filter-transition:   0.14s ease;
+}
+
+/* ── Labels ──────────────────────────────────────────────────────────────── */
+div[data-testid="stSelectbox"] label,
+div[data-testid="stMultiSelect"] label {
+  font-family:    var(--filter-font) !important;
+  font-size:      0.65rem !important;
+  font-weight:    700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color:          var(--filter-text-muted) !important;
+  margin-bottom:  4px !important;
+}
+
+/* ── Selectbox container ─────────────────────────────────────────────────── */
+div[data-testid="stSelectbox"] > div[data-baseweb="select"] > div {
+  background:    var(--filter-bg) !important;
+  border:        1.5px solid var(--filter-border) !important;
+  border-radius: var(--filter-radius) !important;
+  color:         var(--filter-text) !important;
+  font-family:   var(--filter-font) !important;
+  font-size:     0.85rem !important;
+  padding:       2px 8px !important;
+  box-shadow:    0 1px 2px rgba(0,0,0,0.04) !important;
+  transition:    border-color var(--filter-transition),
+                 box-shadow   var(--filter-transition) !important;
+}
+
+div[data-testid="stSelectbox"] > div[data-baseweb="select"] > div:hover {
+  background:   var(--filter-bg-hover) !important;
+  border-color: var(--filter-accent) !important;
+}
+
+div[data-testid="stSelectbox"] > div[data-baseweb="select"] > div:focus-within {
+  border-color: var(--filter-border-focus) !important;
+  box-shadow:   0 0 0 3px var(--filter-accent-soft) !important;
+}
+
+div[data-testid="stSelectbox"] [data-baseweb="select"] span {
+  color:       var(--filter-text) !important;
+  font-family: var(--filter-font) !important;
+  font-size:   0.85rem !important;
+}
+
+div[data-testid="stSelectbox"] svg { fill: var(--filter-text-muted) !important; }
+div[data-testid="stSelectbox"] > div[data-baseweb="select"] > div:hover svg {
+  fill: var(--filter-accent) !important;
+}
+
+/* ── Dropdown menu ───────────────────────────────────────────────────────── */
+div[data-baseweb="popover"] ul {
+  background:    #ffffff !important;
+  border:        1.5px solid var(--filter-border) !important;
+  border-radius: var(--filter-radius) !important;
+  box-shadow:    0 4px 16px rgba(0,0,0,0.08) !important;
+  padding:       4px !important;
+}
+
+div[data-baseweb="popover"] li {
+  font-family:   var(--filter-font) !important;
+  font-size:     0.85rem !important;
+  color:         var(--filter-text) !important;
+  border-radius: calc(var(--filter-radius) - 2px) !important;
+  padding:       8px 12px !important;
+  transition:    background var(--filter-transition);
+}
+
+div[data-baseweb="popover"] li:hover,
+div[data-baseweb="popover"] li[aria-selected="true"] {
+  background: var(--filter-accent-soft) !important;
+  color:      var(--filter-accent-dark) !important;
+}
+
+/* ── MultiSelect container ───────────────────────────────────────────────── */
+div[data-testid="stMultiSelect"] > div[data-baseweb="select"] > div {
+  background:  var(--filter-bg) !important;
+  border:      1.5px solid var(--filter-border) !important;
+  border-radius: var(--filter-radius) !important;
+  font-family: var(--filter-font) !important;
+  font-size:   0.85rem !important;
+  min-height:  38px !important;
+  box-shadow:  0 1px 2px rgba(0,0,0,0.04) !important;
+  transition:  border-color var(--filter-transition),
+               box-shadow   var(--filter-transition) !important;
+}
+
+div[data-testid="stMultiSelect"] > div[data-baseweb="select"] > div:hover {
+  border-color: var(--filter-accent) !important;
+  background:   var(--filter-bg-hover) !important;
+}
+
+div[data-testid="stMultiSelect"] > div[data-baseweb="select"] > div:focus-within {
+  border-color: var(--filter-border-focus) !important;
+  box-shadow:   0 0 0 3px var(--filter-accent-soft) !important;
+}
+
+/* ── Tags / pills ────────────────────────────────────────────────────────── */
+div[data-testid="stMultiSelect"] span[data-baseweb="tag"] {
+  background:    var(--filter-tag-bg) !important;
+  border:        1px solid var(--filter-tag-border) !important;
+  border-radius: 4px !important;
+  color:         var(--filter-tag-text) !important;
+  font-family:   var(--filter-font) !important;
+  font-size:     0.72rem !important;
+  font-weight:   600 !important;
+  padding:       2px 8px !important;
+  margin:        2px !important;
+}
+
+div[data-testid="stMultiSelect"] span[data-baseweb="tag"] span[role="presentation"] {
+  color: var(--filter-text-muted) !important;
+}
+
+div[data-testid="stMultiSelect"] span[data-baseweb="tag"]:hover span[role="presentation"] {
+  color: #305429 !important;
+}
+
+/* ── Input ───────────────────────────────────────────────────────────────── */
+div[data-testid="stMultiSelect"] input {
+  color:       var(--filter-text) !important;
+  font-family: var(--filter-font) !important;
+  font-size:   0.85rem !important;
+  caret-color: var(--filter-accent) !important;
+}
+
+div[data-testid="stMultiSelect"] input::placeholder {
+  color:       var(--filter-text-muted) !important;
+  font-size:   0.8rem !important;
+}
+
+/* ── Filter bar container ────────────────────────────────────────────────── */
+div[data-testid="stHorizontalBlock"] {
+  background:    #ffffff !important;
+  border:        1.5px solid var(--filter-border) !important;
+  border-top:    3px solid var(--filter-accent) !important;
+  border-radius: var(--filter-radius) !important;
+  padding:       12px 16px !important;
+  box-shadow:    0 1px 6px rgba(0,0,0,0.05) !important;
+}

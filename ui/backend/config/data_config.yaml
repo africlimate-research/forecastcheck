@@ -1,0 +1,2 @@
+# Region definitions have moved to backend/config/regions.py (regionmask-based).
+# This file is kept for any future non-region configuration.

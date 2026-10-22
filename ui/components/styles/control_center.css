@@ -1,0 +1,203 @@
+/* ==========================================================================
+   control_center.css  —  AfriClimate AI brand-aligned metric selector
+   Primary accent: Jungle Green #0a9938  ·  Font: Inter
+   Contrast ratios all ≥ 4.5 : 1 (WCAG AA)
+   ========================================================================== */
+
+:root {
+  --cc-bg:            #ffffff;
+  --cc-bg-inner:      #fafafa;
+  --cc-border:        #bac7c9;
+  --cc-border-accent: #0a9938;
+  --cc-text:          #171d1a;
+  --cc-text-muted:    #4B5563;
+  --cc-accent:        #0a9938;
+  --cc-accent-dark:   #2e7d33;
+  --cc-accent-soft:   rgba(10, 153, 56, 0.08);
+  --cc-accent-glow:   rgba(10, 153, 56, 0.16);
+  --cc-toggle-on:     #0a9938;
+  --cc-toggle-off:    #bac7c9;
+  --cc-radius:        14px;
+  --cc-font:          'Inter', sans-serif;
+  --cc-transition:    0.14s ease;
+}
+
+/* ── Container ───────────────────────────────────────────────────────────── */
+div[data-testid="stContainer"] > div[data-testid="stVerticalBlockBorderWrapper"] {
+  background:    var(--cc-bg) !important;
+  border:        1.5px solid var(--cc-border) !important;
+  border-left:   4px solid var(--cc-border-accent) !important;
+  border-radius: var(--cc-radius) !important;
+  padding:       4px 8px !important;
+  box-shadow:    0 1px 6px rgba(0,0,0,0.05) !important;
+}
+
+/* ── Selectbox label ─────────────────────────────────────────────────────── */
+div[data-testid="stContainer"] div[data-testid="stSelectbox"] label {
+  font-family:    var(--cc-font) !important;
+  font-size:      0.65rem !important;
+  font-weight:    700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color:          var(--cc-text-muted) !important;
+}
+
+/* ── Selectbox input ─────────────────────────────────────────────────────── */
+div[data-testid="stContainer"] div[data-testid="stSelectbox"] > div[data-baseweb="select"] > div {
+  background:    var(--cc-bg-inner) !important;
+  border:        1.5px solid var(--cc-border) !important;
+  border-radius: var(--cc-radius) !important;
+  color:         var(--cc-text) !important;
+  font-family:   var(--cc-font) !important;
+  font-size:     0.88rem !important;
+  font-weight:   500 !important;
+  padding:       4px 10px !important;
+  box-shadow:    0 1px 2px rgba(0,0,0,0.04) !important;
+  transition:    border-color var(--cc-transition),
+                 box-shadow   var(--cc-transition) !important;
+}
+
+div[data-testid="stContainer"] div[data-testid="stSelectbox"] > div[data-baseweb="select"] > div:hover {
+  border-color: var(--cc-accent) !important;
+  box-shadow:   0 0 0 3px var(--cc-accent-soft) !important;
+}
+
+div[data-testid="stContainer"] div[data-testid="stSelectbox"] > div[data-baseweb="select"] > div:focus-within {
+  border-color: var(--cc-border-accent) !important;
+  box-shadow:   0 0 0 3px var(--cc-accent-glow) !important;
+}
+
+/* Selected value */
+div[data-testid="stContainer"] div[data-testid="stSelectbox"] [data-baseweb="select"] span {
+  color:       var(--cc-accent-dark) !important;   /* 5.1:1 — AA ✓ */
+  font-family: var(--cc-font) !important;
+  font-size:   0.88rem !important;
+  font-weight: 700 !important;
+}
+
+div[data-testid="stContainer"] div[data-testid="stSelectbox"] svg {
+  fill: var(--cc-text-muted) !important;
+}
+
+/* ── Dropdown menu ───────────────────────────────────────────────────────── */
+div[data-baseweb="popover"] ul {
+  background:    #ffffff !important;
+  border:        1.5px solid var(--cc-border) !important;
+  border-radius: var(--cc-radius) !important;
+  box-shadow:    0 4px 16px rgba(0,0,0,0.08) !important;
+  padding:       4px !important;
+}
+
+div[data-baseweb="popover"] li {
+  font-family:   var(--cc-font) !important;
+  font-size:     0.85rem !important;
+  color:         var(--cc-text) !important;
+  border-radius: calc(var(--cc-radius) - 2px) !important;
+  padding:       8px 12px !important;
+  transition:    background var(--cc-transition);
+}
+
+div[data-baseweb="popover"] li:hover,
+div[data-baseweb="popover"] li[aria-selected="true"] {
+  background: var(--cc-accent-soft) !important;
+  color:      var(--cc-accent-dark) !important;
+}
+
+/* ── Toggle label ────────────────────────────────────────────────────────── */
+div[data-testid="stContainer"] div[data-testid="stToggle"] label p {
+  font-family:    var(--cc-font) !important;
+  font-size:      0.65rem !important;
+  font-weight:    700 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  color:          var(--cc-text-muted) !important;
+}
+
+/* Toggle track — OFF */
+div[data-testid="stContainer"] div[data-testid="stToggle"] > label > div[role="switch"] {
+  background:    var(--cc-toggle-off) !important;
+  border:        1.5px solid var(--cc-border) !important;
+  border-radius: 999px !important;
+  transition:    background   var(--cc-transition),
+                 border-color var(--cc-transition),
+                 box-shadow   var(--cc-transition) !important;
+}
+
+/* Toggle track — ON → Jungle Green */
+div[data-testid="stContainer"] div[data-testid="stToggle"] > label > div[role="switch"][aria-checked="true"] {
+  background:   var(--cc-toggle-on) !important;
+  border-color: var(--cc-toggle-on) !important;
+  box-shadow:   0 0 0 3px var(--cc-accent-soft) !important;
+}
+
+/* Toggle thumb */
+div[data-testid="stContainer"] div[data-testid="stToggle"] > label > div[role="switch"] > div {
+  background:    #ffffff !important;
+  border-radius: 999px !important;
+  box-shadow:    0 1px 4px rgba(0,0,0,0.15) !important;
+}
+
+/* ── Divider ─────────────────────────────────────────────────────────────── */
+hr {
+  border-color: var(--cc-border) !important;
+  margin:       12px 0 !important;
+}
+
+/* ── Toolbar context strip ───────────────────────────────────────────────── */
+.tb-context {
+  display:     flex;
+  align-items: center;
+  flex-wrap:   wrap;
+  gap:         6px;
+  padding:     4px 0;
+}
+
+/* Region / Year chips */
+.tb-chip {
+  display:        inline-flex;
+  align-items:    center;
+  background:     #f1f1f1;
+  border:         1px solid var(--cc-border);
+  border-radius:  4px;
+  padding:        3px 10px;
+  font-family:    var(--cc-font);
+  font-size:      0.72rem;
+  font-weight:    600;
+  color:          var(--cc-text-muted);
+  white-space:    nowrap;
+  letter-spacing: 0.04em;
+}
+
+/* Vertical divider between chips and model pills */
+.tb-divider {
+  display:       inline-block;
+  width:         1px;
+  height:        18px;
+  background:    var(--cc-border);
+  margin:        0 2px;
+  border-radius: 1px;
+}
+
+/* Model name pills */
+.tb-model {
+  display:        inline-flex;
+  align-items:    center;
+  background:     rgba(33, 59, 125, 0.08);
+  border:         1px solid rgba(33, 59, 125, 0.22);
+  border-radius:  4px;
+  padding:        3px 10px;
+  font-family:    var(--cc-font);
+  font-size:      0.72rem;
+  font-weight:    700;
+  color:          #213b7d;
+  white-space:    nowrap;
+  letter-spacing: 0.04em;
+}
+
+/* Empty state */
+.tb-muted {
+  font-family: var(--cc-font);
+  font-size:   0.72rem;
+  color:       var(--cc-text-muted);
+  font-style:  italic;
+}

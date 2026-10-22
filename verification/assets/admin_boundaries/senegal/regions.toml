@@ -1,0 +1,20 @@
+# Senegal administrative regions, read by verification/admin.py.
+#
+# Source: geoBoundaries gbOpen, SEN ADM2 (2019, CC BY 3.0 IGO) — the 45 departments,
+# each tagged with its region (admin1Name). The 14 regions are built as unions of their
+# departments, so a region can never disagree with the departments inside it. Cells in
+# The Gambia fall outside every department.
+#
+# A copy at data/senegal/assets/regions/regions.toml, if present, overrides this one.
+#
+# Region ids (`dakar.pikine`) are written into the by-region store, so editing this
+# file orphans existing pooled curves — rerun verification.run afterwards.
+
+# Display noun per admin level, top first. 14 departments share their region's name,
+# so those appear as "Dakar (region)" / "Dakar (department)" in the picker.
+level_names   = ["region", "department"]
+
+shapefile     = "SEN_Departments.shp"   # relative to this directory
+name_field    = "admin2Name"            # attribute holding the department name
+parent_fields = ["admin1Name"]          # parent levels, coarsest first (the region)
+pool_level    = 2                       # the level the pipeline pools curves at

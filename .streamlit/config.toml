@@ -1,0 +1,11 @@
+[server]
+enableStaticServing = true
+
+[theme]
+# Always light — a user's OS dark-mode preference must never restyle the app.
+base = "light"
+primaryColor = "#2f7e34"   # ForecastCheck design green
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f1f1f1"
+textColor = "#162116"
+font = "sans serif"
