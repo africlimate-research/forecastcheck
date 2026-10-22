@@ -23,10 +23,7 @@ of what the file is for.
 
 WHY THIS RAISES INSTEAD OF WARNING
 ----------------------------------
-``config.deployment_defaults`` deliberately swallows a broken ``deployment.toml``: a bad
-country fails *visibly* (the dashboard shows no data), so limping on beats bricking the
-launch. The opposite is true here. A threshold list silently falling back to the default
-produces a complete, plausible, WRONG set of curves — scored against events nobody asked
+A threshold list silently falling back to the default produces a complete, plausible, WRONG set of curves — scored against events nobody asked
 about, with nothing on screen to say so. So a malformed file stops the run, naming the
 country and key at fault.
 

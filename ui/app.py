@@ -14,11 +14,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-# Seed VERIFICATION_COUNTRY / VERIFICATION_TRUTH_PRODUCT from the committed
-# deployment.toml before any module reads them. A real environment variable still
-# overrides. This is what makes a plain checkout of a per-agency branch launch
-# pre-configured — and what lets a second country be launched from the same tree
-# by exporting the two variables.
+# Seed VERIFICATION_COUNTRY / VERIFICATION_TRUTH_PRODUCT from this machine's country
+# file (deployments/{name}.toml, named by .deployment) before any module reads them. A
+# real environment variable still overrides. This is what makes a machine set up once
+# (echo senegal > .deployment) launch pre-configured — and what lets a second country
+# be launched from the same tree with VERIFICATION_DEPLOYMENT=<name>.
 from verification import config as _config
 
 _config.apply_deployment_defaults()

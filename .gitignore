@@ -21,3 +21,6 @@ script.py
 text.txt
 threshold_commands.txt
 uv.lock
+
+# This machine's country (deployments/{name}.toml): echo senegal > .deployment
+.deployment

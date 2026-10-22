@@ -268,7 +268,7 @@ def calibrate_lead(model, lead_day, train_years, test_year, use_parallel, n_jobs
 
 def main(argv=None):
     from verification import config
-    config.apply_deployment_defaults()   # pin this branch's country/domain (env var still wins)
+    config.apply_deployment_defaults()   # seed this machine's country (.deployment); env var still wins
     p = argparse.ArgumentParser(
         description="Produce calibrated IDR forecasts (p_exceed/crps) at stations.")
     p.add_argument("--model", default="graphcast")

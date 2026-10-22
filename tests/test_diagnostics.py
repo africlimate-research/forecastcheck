@@ -605,7 +605,7 @@ def test_k3_region_filter_by_country():
 
 
 def test_k5_deployment_defaults_seed_env_without_override():
-    """K5: deployment.toml seeds country/product/data_root at launch; a real env var wins.
+    """K5: a country file seeds country/product/data_root at launch; a real env var wins.
 
     Also pins that there is NO configurable diagnostics root. It used to seed
     ``VERIFICATION_DATA_DIR`` from a ``data_dir`` key, which was pinned to one country's
@@ -617,9 +617,10 @@ def test_k5_deployment_defaults_seed_env_without_override():
     from pathlib import Path
     from verification import config
 
-    # The committed file pins THIS branch to Senegal.
-    assert config.deployment_defaults().get("country") == "Senegal"
-    assert "data_dir" not in config.deployment_defaults()
+    # Senegal's committed file names its country and no results root.
+    senegal = config.deployment_defaults(config.deployment_path("senegal"))
+    assert senegal.get("country") == "Senegal"
+    assert "data_dir" not in senegal
 
     with tempfile.TemporaryDirectory() as tmp:
         f = Path(tmp) / "deployment.toml"
