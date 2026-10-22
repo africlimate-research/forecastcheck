@@ -63,8 +63,17 @@ exist.
 
 ## Running it
 
-**1. Data.** `data/` is not in git. The country page explains how to fetch the forecasts,
-the observations and the elevation map for that country.
+**1. Data.** `data/` is not in git. One script fetches the forecasts, the observations and
+the elevation map for this machine's country, from the source its country file names:
+
+```bash
+./scripts/fetch_country.sh            # dry run: lists what would be fetched
+./scripts/fetch_country.sh --apply
+```
+
+Reading the bucket needs a Google Cloud key, referenced by its path
+(`export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json`) — never copied into the
+repository. The country page gives the details.
 
 **2. Pipeline** — three stages, in order; each reads what the previous one wrote. For
 example, Senegal's GraphCast Tmax against CHIRTS:
@@ -141,7 +150,8 @@ naming the country and key. Old result files are not deleted; they stop being se
 | `deployments/` | one file per country |
 | `config/verification.toml` | thresholds, altitude bands, seasons, per country |
 | `docs/countries/` | one page per country |
-| `scripts/` | data fetch; `run_pipeline.sh` (the whole pipeline for this machine's country) |
+| `docs/demo5/` | the training lesson for Senegal and Sierra Leone (fetch, run, read the dashboard) |
+| `scripts/` | `fetch_country.sh` (data) and `run_pipeline.sh` (whole pipeline), both for this machine's country |
 | `tools/compare_runs.py` | zero-tolerance diff of two output trees |
 | `tests/` | test suite |
 

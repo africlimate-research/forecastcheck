@@ -11,10 +11,24 @@ days 1, 3, 5 and 7. No precipitation, no gauges — everything is gridded.
 
 | | source | years |
 |---|---|---|
-| **Gridded truth** | `chirts` — CHIRTS, 0.05° | 2016–2024 |
-| | `era5` — ECMWF reanalysis, regridded to the same grid | 2016–2024 |
-| **Forecasts** | `graphcast` | 2016–2024 |
-| | `ifs` | 2018–2024 |
+| **Gridded truth** | `chirts` — CHIRTS, 0.05° | 2016–2026 |
+| | `era5` — ECMWF reanalysis, regridded to the same grid | 2016–2026 |
+| **Forecasts** | `graphcast` | 2016–2026 |
+| | `ifs` | 2018–2026, **no 2023** |
+
+## Get the data
+
+`data/` is not in git. On the DGX Spark, point the Google Cloud tools at the read-only
+key **by its path** (never copy or paste the key itself), then fetch — first as a dry run:
+
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS=/etc/fleet-gcs-key.json
+./scripts/fetch_country.sh            # lists what would be fetched
+./scripts/fetch_country.sh --apply    # GraphCast + IFS, CHIRTS + ERA5, elevation
+```
+
+Source: `gs://aim4scale_training_2026/demo5/SEN-local-engine`, about 3.5 GB. Re-running resumes; `--with-aifs` adds the AIFS models;
+`--from <folder>` reads a local copy of the folder instead of the bucket.
 
 ## Settings
 

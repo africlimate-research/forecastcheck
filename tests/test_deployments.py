@@ -28,7 +28,7 @@ from verification import config, regions, settings  # noqa: E402
 _REPO = Path(__file__).resolve().parent.parent
 
 #: Every key a country file may hold; anything else is a typo the code would ignore.
-_KNOWN_KEYS = frozenset({"country", "data_root", "truth_product"})
+_KNOWN_KEYS = frozenset({"country", "data_root", "truth_product", "data_source"})
 
 _ENV = ("VERIFICATION_DEPLOYMENT", "VERIFICATION_COUNTRY", "VERIFICATION_DATA_ROOT",
         "VERIFICATION_TRUTH_PRODUCT")
