@@ -1,0 +1,16 @@
+# Sierra Leone administrative regions, read by verification/admin.py.
+#
+# Source: geoBoundaries gbOpen, SLE ADM2 (2017, CC BY 3.0 IGO) — the 14 districts,
+# each tagged with its province (admin1Name). The 4 provinces are built as unions of
+# their districts, so a province can never disagree with the districts inside it.
+# This is the pre-2017 split (Falaba and Karene, and North West province, are absent).
+#
+# A copy at data/sierra_leone/assets/regions/regions.toml, if present, overrides this one.
+#
+# Region ids (`eastern.kailahun`) are written into the by-region store, so editing this
+# file orphans existing pooled curves — rerun verification.run afterwards.
+
+shapefile     = "SLE_Districts.shp"   # relative to this directory
+name_field    = "admin2Name"          # attribute holding the district name
+parent_fields = ["admin1Name"]        # parent levels, coarsest first (the province)
+pool_level    = 2                     # the level the pipeline pools curves at

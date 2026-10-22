@@ -228,7 +228,7 @@ def test_s9_the_committed_file_parses_and_holds_senegal():
     from verification import diagnostics, seasons, store
 
     settings._load.cache_clear()
-    assert settings.configured_countries() == ("senegal",)
+    assert settings.configured_countries() == ("senegal", "sierra leone")
     assert settings.thresholds("temperature_max", "Senegal") == (
         37, 38, 39, 40, 41, 42, 43, 44, 45)
     assert settings.thresholds("temperature_min", "Senegal") == ()
@@ -239,6 +239,20 @@ def test_s9_the_committed_file_parses_and_holds_senegal():
         "all", "0-25", "25-50", "50-100", ">100"]
     assert tuple(settings.seasons("Senegal")) == seasons.SEASONS_BY_COUNTRY["Senegal"] \
         == ("ndjf", "mamj", "jaso")
+
+
+def test_s9b_the_committed_file_holds_sierra_leone():
+    """Sierra Leone's block, pinned like Senegal's: a typo would shift every curve."""
+    from verification import diagnostics, seasons, store
+
+    settings._load.cache_clear()
+    assert settings.thresholds("temperature_max", "Sierra Leone") == (37, 38, 39, 40)
+    assert not store.has_exceedance("temperature_min", "Sierra Leone")
+    assert list(diagnostics.altitude_bands("Sierra Leone")) == [
+        "all", "0-100", "100-300", "300-600", ">600"]
+    assert tuple(settings.seasons("Sierra Leone")) \
+        == seasons.SEASONS_BY_COUNTRY["Sierra Leone"] == ("ondj", "fmam", "jjas")
+    assert seasons.season_months("ondj") == (10, 11, 12, 1)
 
 
 # --------------------------------------------------------------------------- s10

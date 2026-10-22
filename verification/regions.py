@@ -35,6 +35,7 @@ from verification import config
 REGION_COUNTRIES: dict[str, list[str] | None] = {
     "Africa": None,
     "Senegal": ["Senegal"],
+    "Sierra Leone": ["Sierra Leone"],
 }
 
 

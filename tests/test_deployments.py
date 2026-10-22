@@ -109,13 +109,13 @@ def test_d6_every_country_file_is_complete(name):
     boundaries = (_REPO / "verification" / "assets" / "admin_boundaries"
                   / config.slug(country) / "regions.toml")
     assert boundaries.exists(), f"{name}: no {boundaries.relative_to(_REPO)}"
-    assert config.slug(country) in settings.configured_countries(), (
+    assert country.strip().lower() in settings.configured_countries(), (
         f"{name}: no [{country}.*] section in config/verification.toml")
 
 
 def test_d7_the_shipped_countries():
     """The countries this repository ships; a new country adds its name here."""
-    assert config.available_deployments() == ("senegal",)
+    assert config.available_deployments() == ("senegal", "sierra-leone")
 
 
 if __name__ == "__main__":
