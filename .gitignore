@@ -2,11 +2,16 @@ env/
 data/
 .DS_Store
 __pycache__/
-# Local-only operational scripts (one-off bucket pulls, not part of the platform)
-scripts/fetch_aifs.sh
-scripts/run_aifs_pipeline.sh
-scripts/run_aifs_2024_station.sh
-scripts/fetch_sle.sh
+.pytest_cache/
+
+# Credentials are referenced by path, never kept in the repository (see SECURITY.md).
+*.json.key
+*-key.json
+.env
+
+# Notes kept on each developer's machine, not in the repository.
+CLAUDE.md
+.claude/
 
 # Local scratch — designer drops, ad-hoc notes and scripts.
 # The app's own icons are tracked under ui/assets/icons/; the root icons/ folder is

@@ -1,0 +1,31 @@
+name: Bug report
+description: Something does not work as the documentation says
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command and error
+      description: The exact command you ran and the full error message.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: country
+    attributes:
+      label: Country
+      description: The country your installation runs for (the name in `.deployment`).
+      placeholder: senegal
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system and Python version (`python --version`).
+      placeholder: Ubuntu 22.04 (DGX Spark), Python 3.11

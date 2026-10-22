@@ -9,6 +9,9 @@ NetCDF under `data/` — no cloud credentials at runtime.
 > Each agency runs its own branch; what differs between them is `deployment.toml`,
 > `config/verification.toml`, the boundary files and the data — not the code.
 
+> **Want to contribute?** Please read [CONTRIBUTING.md](CONTRIBUTING.md) first: it explains
+> how we branch, open pull requests and keep `main` up to date.
+
 **Step-by-step setup: [`senegal-setup-run.md`](senegal-setup-run.md).** This page is the
 overview and the short version.
 
