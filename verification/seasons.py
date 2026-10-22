@@ -16,15 +16,20 @@ from __future__ import annotations
 # slug -> (display label, 1-based months | None)
 SEASONS: dict[str, tuple[str, tuple[int, ...] | None]] = {
     "yearly": ("Yearly",         None),
-    "ndjf":   ("NDJF (Nov–Feb)", (11, 12, 1, 2)),     # cool dry season (harmattan)
-    "mamj":   ("MAMJ (Mar–Jun)", (3, 4, 5, 6)),       # hot dry season — the heat peak
-    "jaso":   ("JASO (Jul–Oct)", (7, 8, 9, 10)),      # rainy season (hivernage)
+    "ndjf":   ("NDJF (Nov–Feb)", (11, 12, 1, 2)),     # Senegal: cool dry season (harmattan)
+    "mamj":   ("MAMJ (Mar–Jun)", (3, 4, 5, 6)),       # Senegal: hot dry season, heat peak
+    "jaso":   ("JASO (Jul–Oct)", (7, 8, 9, 10)),      # Senegal: rainy season (hivernage)
+    "ondj":   ("ONDJ (Oct–Jan)", (10, 11, 12, 1)),    # Sierra Leone: end of the rains
+    "fmam":   ("FMAM (Feb–May)", (2, 3, 4, 5)),       # Sierra Leone: late dry season, heat peak
+    "jjas":   ("JJAS (Jun–Sep)", (6, 7, 8, 9)),       # Sierra Leone: monsoon
 }
 
 #: Which seasons each country offers. ``yearly`` is implicit and always first; a country
 #: absent here gets ``yearly`` only.
 SEASONS_BY_COUNTRY: dict[str, tuple[str, ...]] = {
     "Senegal": ("ndjf", "mamj", "jaso"),
+    # Checked against CHIRTS: fmam isolates the heat season, jjas the monsoon.
+    "Sierra Leone": ("ondj", "fmam", "jjas"),
 }
 
 DEFAULT_SEASON_SLUG: str = "yearly"

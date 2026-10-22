@@ -1,4 +1,6 @@
-# ForecastCheck — Senegal study parameters, editable without touching Python.
+# ForecastCheck — study parameters per country, editable without touching Python.
+#
+# One block of sections per country, keyed by its name: [Senegal.*], ["Sierra Leone".*].
 #
 # Every section is optional: remove one and the code default applies. A section
 # REPLACES the default rather than merging with it, so list every value you want.
@@ -48,3 +50,32 @@ label  = "MAMJ (Mar–Jun)"        # hot dry season — the heat peak
 [Senegal.seasons.jaso]
 months = [7, 8, 9, 10]
 label  = "JASO (Jul–Oct)"        # rainy season (hivernage)
+
+
+# ════════════════════════════════════════════════════════════════════ Sierra Leone
+["Sierra Leone".thresholds]
+temperature_max = [37, 38, 39, 40]
+temperature_min = []    # warm nights track monsoon cloud, not heat
+
+
+# Elevation strata, in metres, half-open [low, high). Use [low, "inf"] for the top band.
+# "all" (every land cell) is added automatically — do not list it.
+# Sierra Leone is low (median ~330 m, max ~1450 m), so the bands are hundreds of metres.
+["Sierra Leone".altitude_bands]
+"0-100"   = [0, 100]        # coastal plain
+"100-300" = [100, 300]      # interior lowland
+"300-600" = [300, 600]      # plateau
+">600"    = [600, "inf"]    # Loma / Tingi hills
+
+
+# Seasons the curves are pooled over. "yearly" is always offered; do not define it.
+# Checked against CHIRTS: fmam holds the heat season, jjas the monsoon.
+["Sierra Leone".seasons.ondj]
+months = [10, 11, 12, 1]
+label  = "ONDJ (Oct–Jan)"        # end of the rains, early dry season
+["Sierra Leone".seasons.fmam]
+months = [2, 3, 4, 5]
+label  = "FMAM (Feb–May)"        # late dry season — the heat peak
+["Sierra Leone".seasons.jjas]
+months = [6, 7, 8, 9]
+label  = "JJAS (Jun–Sep)"        # monsoon

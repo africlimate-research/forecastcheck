@@ -231,10 +231,17 @@ def test_c5_no_region_id_collides_with_a_season_slug():
     SEASON_SLUGS. Ids are coordinates now rather than path segments, but the guarantee is
     cheap to keep and a collision would still confuse any reader that pattern-matches.
     """
-    with _env(VERIFICATION_COUNTRY="Senegal"):
-        cat = admin.catalogue_for()
-        clashes = {r.id for r in cat.leaves()} & set(SEASON_SLUGS)
-        assert not clashes, clashes
+    import tomllib
+
+    from verification import config
+    for name in config.available_deployments():         # every shipped country
+        with open(config.deployment_path(name), "rb") as fh:
+            country = tomllib.load(fh)["country"]
+        with _env(VERIFICATION_COUNTRY=country):
+            cat = admin.catalogue_for()
+            assert len(cat.leaves()) > 1, f"{country}: boundaries did not load"
+            clashes = {r.id for r in cat.leaves()} & set(SEASON_SLUGS)
+            assert not clashes, (country, clashes)
 
 
 def test_c6_no_manifest_degrades_to_the_country_itself():

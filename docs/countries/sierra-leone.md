@@ -1,0 +1,68 @@
+# Sierra Leone
+
+```bash
+echo sierra-leone > .deployment
+```
+
+## What is verified against what
+
+**Daily maximum and minimum temperature** (`temperature_max`, `temperature_min`), at lead
+days 1, 3, 5 and 7. No precipitation, no gauges — everything is gridded.
+
+| | source | years |
+|---|---|---|
+| **Gridded truth** | `chirts` — CHIRTS, 0.05° | 2016–2024 |
+| | `era5` — ECMWF reanalysis, regridded to the same grid | 2016–2024 |
+| **Forecasts** | `graphcast` | 2016–2026 |
+| | `ifs` | 2018–2026 |
+
+## Settings
+
+In **`config/verification.toml`** under `["Sierra Leone".*]`:
+
+| | |
+|---|---|
+| `temperature_max` thresholds | 37, 38, 39, 40 °C |
+| `temperature_min` thresholds | none — crps and the deterministic metrics only |
+| Altitude bands | 0–100 / 100–300 / 300–600 / >600 m |
+| Seasons | `ondj` Oct–Jan · `fmam` Feb–May · `jjas` Jun–Sep (plus `yearly`) — checked against CHIRTS |
+| Regions | 4 provinces over 14 districts (`verification/assets/admin_boundaries/sierra_leone/`) |
+
+The boundaries are geoBoundaries gbOpen SLE ADM2 (2017, CC BY 3.0 IGO), the pre-2017
+split: Falaba, Karene and North West province are absent.
+
+## Running the pipeline
+
+Sierra Leone holds two truth products, so every run names one with `--product` (`chirts`
+or `era5`). `--variable` is required too: the CLI default is precipitation. One script runs
+every stage for both products and both variables:
+
+```bash
+./scripts/run_pipeline.sh
+```
+
+`temperature_min` has no thresholds, so the calibrated pass computes `crps` only for it.
+IFS starts in 2018, so it trains on 2018–2021 where GraphCast trains on 2016–2021; both
+are tested on 2022.
+
+Curves are pooled once per district and summed to provinces at read time. To write
+per-region / per-season curve files explicitly:
+
+```bash
+python -m verification.run --model graphcast-idr --variable temperature_max --metric roc \
+    --year 2022 --product chirts \
+    --region "Sierra Leone" Eastern Kailahun --season yearly ondj fmam jjas
+```
+
+## Known limits of this data
+
+Read once before quoting a number.
+
+- **ERA5 is a model, not an observation**, and runs ~2.7 °C below CHIRTS here. Always say
+  which truth a figure came from.
+- **The 40 °C rung is unusable against ERA5** — 77 observed events nationally, a flat ROC
+  curve. Read it against CHIRTS.
+- **IFS starts in 2018**, GraphCast in 2016: compare calibrated models on the same
+  training years.
+- **Western Area Urban (Freetown)** is about two 0.05° cells — too few to carry a
+  threshold curve; use the Western Area province instead.

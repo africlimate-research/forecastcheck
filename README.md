@@ -23,6 +23,7 @@ Every country runs the **same code**. What makes an installation Senegal's is on
 | Country | Agency | File | Details |
 |---|---|---|---|
 | Senegal | ANACIM | `deployments/senegal.toml` | [docs/countries/senegal.md](docs/countries/senegal.md) |
+| Sierra Leone | — | `deployments/sierra-leone.toml` | [docs/countries/sierra-leone.md](docs/countries/sierra-leone.md) |
 
 Each country page says what is verified against what, the study settings, how to run the
 pipeline for that country, and the known limits of its data. Read it before quoting a
@@ -139,7 +140,7 @@ naming the country and key. Old result files are not deleted; they stop being se
 | `deployments/` | one file per country |
 | `config/verification.toml` | thresholds, altitude bands, seasons, per country |
 | `docs/countries/` | one page per country |
-| `scripts/` | data fetch; `run_pipeline.sh` (Senegal's whole pipeline in one script) |
+| `scripts/` | data fetch; `run_pipeline.sh` (the whole pipeline for Senegal or Sierra Leone) |
 | `tools/compare_runs.py` | zero-tolerance diff of two output trees |
 | `tests/` | test suite |
 
