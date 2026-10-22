@@ -1,0 +1,25 @@
+name: Add a country
+description: Propose running ForecastCheck for a new country
+labels: [new-country]
+body:
+  - type: input
+    id: country
+    attributes:
+      label: Country and agency
+      placeholder: Ghana (GMet)
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Data available
+      description: >
+        Which forecasts (GraphCast, IFS, AIFS, …), which truth (gridded product, station
+        gauges), which variables and which years.
+    validations:
+      required: true
+  - type: textarea
+    id: regions
+    attributes:
+      label: Regions and seasons
+      description: The admin level to show (regions, districts, counties…) and the seasons that matter.
