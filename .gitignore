@@ -15,8 +15,9 @@ CLAUDE.md
 
 # Local scratch — designer drops, ad-hoc notes and scripts.
 # The app's own icons are tracked under ui/assets/icons/; the root icons/ folder is
-# the designer's raw export and is not what chrome.py loads.
-icons/
+# the designer's raw export and is not what chrome.py loads. Anchored with a leading
+# slash: a bare `icons/` also matched ui/assets/icons/ and kept the app's icons out of git.
+/icons/
 script.py
 text.txt
 threshold_commands.txt
