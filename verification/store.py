@@ -95,6 +95,9 @@ PRODUCTS: dict[str, TruthProduct] = {
     # measures agreement with another model's analysis — a second opinion, not a
     # substitute for CHIRTS.
     "era5": TruthProduct(name="era5", label="ERA5"),
+    # CHC satellite-gauge rainfall (v2.0). No values over water, and its rain day runs
+    # 00-00 UTC, six hours earlier than the forecasts' 06-06 UTC window.
+    "chirps": TruthProduct(name="chirps", label="CHIRPS"),
 }
 
 #: Written when nothing configures a product and the disk does not decide it.

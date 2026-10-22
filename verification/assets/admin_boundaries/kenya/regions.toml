@@ -1,0 +1,18 @@
+# Kenya administrative regions, read by verification/admin.py.
+#
+# Source: geoBoundaries gbOpen, KEN ADM1 (2020, Public Domain) — the 47 counties.
+# The simplified geometry is committed: at the 0.1 degree RFE grid it masks the same
+# cells as the full boundary. Sub-counties (ADM2) are too small (~17 cells each) to
+# carry a threshold curve, so the counties are the only level.
+#
+# A copy at data/kenya/assets/regions/regions.toml, if present, overrides this one.
+#
+# Region ids (slugged county names) are written into the by-region store, so editing
+# this file orphans existing pooled curves — rerun verification.run afterwards.
+
+# Display noun per admin level, top first; used to qualify a name found at two levels.
+level_names   = ["county"]
+
+shapefile     = "KEN_Counties.shp"   # relative to this directory
+name_field    = "shapeName"          # attribute holding the county name
+pool_level    = 1                    # the level the pipeline pools curves at

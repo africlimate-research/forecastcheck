@@ -24,6 +24,7 @@ Every country runs the **same code**. What makes an installation Senegal's is on
 |---|---|---|---|
 | Senegal | ANACIM | `deployments/senegal.toml` | [docs/countries/senegal.md](docs/countries/senegal.md) |
 | Sierra Leone | — | `deployments/sierra-leone.toml` | [docs/countries/sierra-leone.md](docs/countries/sierra-leone.md) |
+| Kenya | KMD | `deployments/kenya.toml` | [docs/countries/kenya.md](docs/countries/kenya.md) |
 
 Each country page says what is verified against what, the study settings, how to run the
 pipeline for that country, and the known limits of its data. Read it before quoting a
@@ -79,7 +80,7 @@ python -m verification.run --model graphcast-idr --variable temperature_max --pr
 
 `--product` names the truth when a country holds more than one (the run stops and lists
 them if you leave it out). The country page gives the exact commands — years, models and
-products — for that country.
+products — for that country, and `./scripts/run_pipeline.sh` runs them all.
 
 **3. Dashboard:**
 
@@ -140,7 +141,7 @@ naming the country and key. Old result files are not deleted; they stop being se
 | `deployments/` | one file per country |
 | `config/verification.toml` | thresholds, altitude bands, seasons, per country |
 | `docs/countries/` | one page per country |
-| `scripts/` | data fetch; `run_pipeline.sh` (the whole pipeline for Senegal or Sierra Leone) |
+| `scripts/` | data fetch; `run_pipeline.sh` (the whole pipeline for this machine's country) |
 | `tools/compare_runs.py` | zero-tolerance diff of two output trees |
 | `tests/` | test suite |
 
