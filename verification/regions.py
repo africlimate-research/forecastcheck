@@ -37,6 +37,7 @@ REGION_COUNTRIES: dict[str, list[str] | None] = {
     "Senegal": ["Senegal"],
     "Sierra Leone": ["Sierra Leone"],
     "Kenya": ["Kenya"],
+    "Rwanda": ["Rwanda"],
 }
 
 

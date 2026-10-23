@@ -25,6 +25,7 @@ Every country runs the **same code**. What makes an installation Senegal's is on
 | Senegal | ANACIM | `deployments/senegal.toml` | [docs/countries/senegal.md](docs/countries/senegal.md) |
 | Sierra Leone | — | `deployments/sierra-leone.toml` | [docs/countries/sierra-leone.md](docs/countries/sierra-leone.md) |
 | Kenya | KMD | `deployments/kenya.toml` | [docs/countries/kenya.md](docs/countries/kenya.md) |
+| Rwanda | Meteo Rwanda | `deployments/rwanda.toml` | [docs/countries/rwanda.md](docs/countries/rwanda.md) |
 
 Each country page says what is verified against what, the study settings, how to run the
 pipeline for that country, and the known limits of its data. Read it before quoting a

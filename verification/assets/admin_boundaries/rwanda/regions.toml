@@ -1,0 +1,20 @@
+# Rwanda administrative regions, read by verification/admin.py.
+#
+# Source: geoBoundaries gbOpen, RWA ADM2 (2012, CC BY 4.0, Open Data Rwanda) — the 30
+# districts, simplified geometry. Each district is tagged with its province (admin1Name)
+# by its overlap with geoBoundaries RWA ADM1 (2020); every district lies at least 99 %
+# inside one province. The 5 provinces are built as unions of their districts, so a
+# province can never disagree with the districts inside it.
+#
+# A copy at data/rwanda/assets/regions/regions.toml, if present, overrides this one.
+#
+# Region ids (`kigali.gasabo`) are written into the by-region store, so editing this
+# file orphans existing pooled curves — rerun verification.run afterwards.
+
+# Display noun per admin level, top first; used to qualify a name found at two levels.
+level_names   = ["province", "district"]
+
+shapefile     = "RWA_Districts.shp"     # relative to this directory
+name_field    = "admin2Name"            # attribute holding the district name
+parent_fields = ["admin1Name"]          # parent levels, coarsest first (the province)
+pool_level    = 2                       # the level the pipeline pools curves at

@@ -124,7 +124,7 @@ def test_d6b_every_country_file_names_its_data_source(name):
 
 def test_d7_the_shipped_countries():
     """The countries this repository ships; a new country adds its name here."""
-    assert config.available_deployments() == ("kenya", "senegal", "sierra-leone")
+    assert config.available_deployments() == ("kenya", "rwanda", "senegal", "sierra-leone")
 
 
 if __name__ == "__main__":

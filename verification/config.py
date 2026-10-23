@@ -11,7 +11,7 @@ the REGION_COUNTRIES list.
 tests can vary it.
 
 **Countries are files, not branches.** Every country's settings live in one committed
-file, ``deployments/{name}.toml`` (``senegal``, ``sierra-leone``, ``kenya``), all on
+file, ``deployments/{name}.toml`` (``senegal``, ``sierra-leone``, ``kenya``, ``rwanda``), all on
 ``main``, so a change to the platform reaches every country at once. A machine runs as
 ONE of them, named by :func:`deployment_name` (the git-ignored ``.deployment`` file, or
 ``VERIFICATION_DEPLOYMENT``). Each launch entry point calls
