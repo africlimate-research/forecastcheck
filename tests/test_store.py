@@ -611,6 +611,42 @@ def _run():
     return failed
 
 
+
+def test_p8_a_product_held_on_disk_is_usable_without_being_named():
+    """An agency's own data — say rain gauges in truth/natgauges/ — is a product.
+
+    It cannot be published, so it is never listed in PRODUCTS: holding it on disk is
+    enough. A name the country does not hold, and this build does not know, is a typo
+    and still fails, naming what the country does hold.
+    """
+    from verification.store import PRODUCTS, STATION, require_unambiguous_product
+
+    assert "natgauges" not in PRODUCTS
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        d = root / "testland" / "truth" / "natgauges" / "station" / "precipitation"
+        d.mkdir(parents=True)
+        (d / "2022.nc").touch()
+        s = CountryStore.for_country("Testland", data_root=root)
+
+        held = s.for_product("natgauges")                    # held on disk: accepted
+        assert "/natgauges/station/" in str(
+            held.truth(target=STATION, variable="precipitation", year=2022))
+        assert s.for_product("chirps").product == "chirps"  # known by name: accepted
+
+        try:
+            s.for_product("natguages")                       # a typo: refused
+            raise AssertionError("expected ValueError for a misspelt product")
+        except ValueError as exc:
+            assert "natgauges" in str(exc), str(exc)        # ...naming what is held
+
+        # The early CLI check (require_unambiguous_product) applies the same rule to a
+        # product pinned with --product, so a typo stops before any work is done.
+        pinned = CountryStore.for_country("Testland", data_root=root, product="natguages")
+        assert "unknown truth product" in (require_unambiguous_product(pinned, STATION) or "")
+        pinned = CountryStore.for_country("Testland", data_root=root, product="natgauges")
+        assert require_unambiguous_product(pinned, STATION) is None
+
 if __name__ == "__main__":
     sys.exit(1 if _run() else 0)
 

@@ -4,16 +4,22 @@
 #
 # Fetch this machine's country data (the country named in .deployment) into data/.
 #
-#   {SOURCE}/raw/gridded/{bucket_var}/{year}/{model}/{lead}h.nc
-#     -> data/{country}/forecast/gridded/{variable}/{year}/{model}/{lead}h.nc
-#   {SOURCE}/target/gridded/{bucket_var}/{PRODUCT}/{year}.nc
-#     -> data/{country}/truth/{product}/gridded/{variable}/{year}.nc
+#   {SOURCE}/raw/{shape}/{bucket_var}/{year}/{model}/{lead}h.nc
+#     -> data/{country}/forecast/{shape}/{variable}/{year}/{model}/{lead}h.nc
+#   {SOURCE}/target/{shape}/{bucket_var}/{PRODUCT}/{year}.nc
+#     -> data/{country}/truth/{product}/{shape}/{variable}/{year}.nc
 #   {SOURCE}/assets/dem.nc
 #     -> data/{country}/assets/dem.nc
 #
+# {shape} is `gridded` (a grid of cells) or `station` (a list of gauges); each is fetched
+# when the source has it.
+#
 # {SOURCE} is the country file's `data_source` (deployments/{name}.toml), or a local copy
-# of that folder passed with --from (a USB drive, a shared disk). The source is only ever
-# read. Three renames happen on the way in, none of which touches a file's contents:
+# of a country folder passed with --from (a USB drive, a shared disk). The source is only
+# ever read, and a --from copy is ADDED to what is already in data/: your own national data
+# (rain gauges, a gauge-corrected grid), kept on a local disk because it cannot be
+# published, completes what the bucket gave. Three renames happen on the way in, none of
+# which touches a file's contents:
 #   temperature_2m_max -> temperature_max   (the bucket uses the harmoniser's names)
 #   raw/               -> forecast/
 #   CHIRTS             -> chirts            (path segments are lowercase)
@@ -37,6 +43,7 @@
 #         ./scripts/fetch_country.sh --apply
 #         ./scripts/fetch_country.sh --apply --with-aifs
 #         ./scripts/fetch_country.sh --from /path/to/SEN-local-engine --apply
+#         ./scripts/fetch_country.sh --from /media/$USER/USB/<folder> --apply   # your own data
 set -euo pipefail
 
 usage="usage: fetch_country.sh [--apply] [--with-aifs] [--from DIR]"
@@ -132,20 +139,21 @@ fi
 DRY=""; [ "$APPLY" -eq 1 ] || DRY=1
 echo "country: $COUNTRY | source: $SOURCE | into: $DEST | models: ${MODELS//|/, }"
 
-# Listed into a variable, not inside `for … in $(…)`: there a failure (no access, wrong
+# Listed into variables, not inside `for … in $(…)`: there a failure (no access, wrong
 # path) would be ignored and the run would "succeed" having fetched nothing.
-variables=$(ls_dirs raw/gridded) || {
-  echo "!! cannot read $SOURCE/raw/gridded — check the path and your access (see the" >&2
-  echo "   header of this script: GOOGLE_APPLICATION_CREDENTIALS or gcloud auth login)" >&2
+raw_shapes=$(ls_dirs raw) && truth_shapes=$(ls_dirs target) || {
+  echo "!! cannot read $SOURCE — check the path and your access (see the header of" >&2
+  echo "   this script: GOOGLE_APPLICATION_CREDENTIALS or gcloud auth login)" >&2
   exit 1; }
-[ -n "$variables" ] || { echo "!! no forecasts under $SOURCE/raw/gridded" >&2; exit 1; }
 
 # After --apply, every file the source holds must be here. A download tool that skips a
 # file it cannot verify must not end in "done": count what the source has (forecasts
 # through the same model filter) and what arrived, and remember any shortfall.
 FORECAST_FILE="/[0-9]{4}/($MODELS)/[^/]+\.nc$"
 missing=0
+synced=0
 check_arrived() {   # check_arrived <source folder> <destination folder> <path regex>
+  synced=$((synced + 1))
   [ -z "$DRY" ] || return 0
   local want have
   want=$(ls_files "$1" | { grep -Ec "$3" || true; })
@@ -155,30 +163,50 @@ check_arrived() {   # check_arrived <source folder> <destination folder> <path r
     missing=$((missing + want - have))
   fi
 }
+listed() { grep -qx "$1" <<< "$2"; }   # listed <name> <newline-separated list>
 
-for bucket_var in $variables; do
-  var=$(local_var "$bucket_var")
-  if [ -z "$var" ]; then echo "  note: skipping unknown variable '$bucket_var'"; continue; fi
-  echo "── forecasts: $var"
-  [ -n "$DRY" ] || mkdir -p "$DEST/forecast/gridded/$var"
-  sync_forecasts "$SOURCE/raw/gridded/$bucket_var" "$DEST/forecast/gridded/$var"
-  check_arrived "$SOURCE/raw/gridded/$bucket_var" "$DEST/forecast/gridded/$var" "$FORECAST_FILE"
-  products=$(ls_dirs "target/gridded/$bucket_var")
-  for product in $products; do
-    lower=$(printf '%s' "$product" | tr '[:upper:]' '[:lower:]')
-    echo "── truth: $var, $lower"
-    [ -n "$DRY" ] || mkdir -p "$DEST/truth/$lower/gridded/$var"
-    sync_tree "$SOURCE/target/gridded/$bucket_var/$product" "$DEST/truth/$lower/gridded/$var"
-    check_arrived "$SOURCE/target/gridded/$bucket_var/$product" \
-                  "$DEST/truth/$lower/gridded/$var" '\.nc$'
+# Two shapes: gridded (a grid of cells) and station (a list of gauges). A source may hold
+# forecasts without truth or truth without forecasts for a shape — a local folder of
+# national data added to what the bucket already gave — so both raw/ and target/ are
+# walked, each for whatever it holds.
+for shape in gridded station; do
+  in_raw=""; in_target=""
+  listed "$shape" "$raw_shapes" && in_raw=1
+  listed "$shape" "$truth_shapes" && in_target=1
+  [ -n "$in_raw$in_target" ] || continue
+  fvars=""; tvars=""
+  [ -z "$in_raw" ] || fvars=$(ls_dirs "raw/$shape")
+  [ -z "$in_target" ] || tvars=$(ls_dirs "target/$shape")
+  for bucket_var in $(printf '%s\n%s\n' "$fvars" "$tvars" | sort -u); do
+    var=$(local_var "$bucket_var")
+    if [ -z "$var" ]; then echo "  note: skipping unknown variable '$bucket_var'"; continue; fi
+    if listed "$bucket_var" "$fvars"; then
+      echo "── forecasts: $var ($shape)"
+      [ -n "$DRY" ] || mkdir -p "$DEST/forecast/$shape/$var"
+      sync_forecasts "$SOURCE/raw/$shape/$bucket_var" "$DEST/forecast/$shape/$var"
+      check_arrived "$SOURCE/raw/$shape/$bucket_var" "$DEST/forecast/$shape/$var" "$FORECAST_FILE"
+    fi
+    listed "$bucket_var" "$tvars" || continue
+    products=$(ls_dirs "target/$shape/$bucket_var")
+    for product in $products; do
+      lower=$(printf '%s' "$product" | tr '[:upper:]' '[:lower:]')
+      echo "── truth: $var, $lower ($shape)"
+      [ -n "$DRY" ] || mkdir -p "$DEST/truth/$lower/$shape/$var"
+      sync_tree "$SOURCE/target/$shape/$bucket_var/$product" "$DEST/truth/$lower/$shape/$var"
+      check_arrived "$SOURCE/target/$shape/$bucket_var/$product" \
+                    "$DEST/truth/$lower/$shape/$var" '\.nc$'
+    done
   done
 done
+[ "$synced" -gt 0 ] || { echo "!! nothing to fetch under $SOURCE/raw or $SOURCE/target" >&2; exit 1; }
 
 # Elevation, for the altitude bands. Optional: without it everything still runs and the
 # dashboard simply offers no altitude selector.
 echo "── elevation"
 if has_file "$SOURCE/assets/dem.nc"; then
   copy_file "$SOURCE/assets/dem.nc" "$DEST/assets/dem.nc"
+elif [ -f "$DEST/assets/dem.nc" ]; then
+  echo "  already here (this source has none)"
 else
   echo "  note: no assets/dem.nc in the source — altitude bands will be unavailable"
 fi

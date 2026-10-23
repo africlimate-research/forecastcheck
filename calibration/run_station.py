@@ -40,7 +40,6 @@ import xarray as xr
 
 from verification import provenance as _provenance
 from verification.store import CountryStore as _CountryStore
-from verification.store import PRODUCTS as _PRODUCTS
 from verification.store import exceedance_thresholds as _exceedance_thresholds
 
 from .idr import idr_on_grid
@@ -285,9 +284,11 @@ def main(argv=None):
                         "that stage asks for. Provided so a historical run can be "
                         "reproduced exactly: output written before this list grew to 13 "
                         "values carries only [10,20,40,50,60].")
-    p.add_argument("--product", default=None, choices=sorted(_PRODUCTS),
-                   help="observational product to calibrate against (default: the "
-                        "deployment's truth_product). Selects the truth/ tree read AND "
+    p.add_argument("--product", default=None, metavar="PRODUCT",
+                   help="observational product to calibrate against: a public one "
+                        "(chirts, era5, chirps) or any truth folder this country holds, "
+                        "e.g. your own national data (default: the deployment's "
+                        "truth_product). Selects the truth/ tree read AND "
                         "the idr/ tree written, so a second product's calibration is a "
                         "separate model rather than an overwrite of the first.")
     args = p.parse_args(argv)
@@ -298,6 +299,13 @@ def main(argv=None):
         import os
 
         os.environ["VERIFICATION_TRUTH_PRODUCT"] = args.product
+
+    # Fail here, not minutes into a lead loop, on a misspelt product or an ambiguous one.
+    from verification.store import STATION, CountryStore, require_unambiguous_product
+
+    problem = require_unambiguous_product(CountryStore.current(), target=STATION)
+    if problem:
+        p.error(problem)
 
     leads = [int(x) for x in args.leads.split(",") if x.strip()]
     thresholds = ([int(x) for x in args.thresholds.split(",") if x.strip()]

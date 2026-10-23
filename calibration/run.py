@@ -60,7 +60,6 @@ from verification import provenance as _provenance
 from verification.store import VARIABLES as _STORE_VARIABLES
 from verification.store import truth_field as _truth_field
 from verification.store import CountryStore as _CountryStore
-from verification.store import PRODUCTS as _PRODUCTS
 from verification.store import exceedance_internal as _exceedance_internal
 from verification.store import exceedance_thresholds as _exceedance_thresholds
 
@@ -280,9 +279,11 @@ def main(argv=None) -> int:
     p.add_argument("--no-parallel", action="store_true",
                    help="disable joblib parallelism (sequential per-cell fit)")
     p.add_argument("--n-jobs", type=int, default=-1, help="joblib workers (-1 = all cores)")
-    p.add_argument("--product", default=None, choices=sorted(_PRODUCTS),
-                   help="observational product to calibrate against (default: the "
-                        "deployment's truth_product). Selects the truth/ tree read AND "
+    p.add_argument("--product", default=None, metavar="PRODUCT",
+                   help="observational product to calibrate against: a public one "
+                        "(chirts, era5, chirps) or any truth folder this country holds, "
+                        "e.g. your own national data (default: the deployment's "
+                        "truth_product). Selects the truth/ tree read AND "
                         "the idr/ tree written, so a second product's calibration is a "
                         "separate model rather than an overwrite of the first.")
     args = p.parse_args(argv)

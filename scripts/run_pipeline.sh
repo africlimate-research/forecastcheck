@@ -18,9 +18,19 @@ cd "$(dirname "$0")/.."
 
 # The country slug, resolved exactly as the pipeline resolves it (a misspelt
 # .deployment stops here with the list of countries that exist).
-country=$(python -c "from verification import config
+resolved=$(python -c "from verification import config
 config.apply_deployment_defaults()
-print(config.domain())")
+print(config.domain())
+print(config.data_root() / config.domain())")
+country=$(sed -n 1p <<< "$resolved")
+data=$(sed -n 2p <<< "$resolved")
+
+# The truth products on disk for one shape (gridded | station), e.g. "chirts era5".
+truths() {
+  local d
+  for d in "$data"/truth/*/"$1"; do [ -d "$d" ] && basename "$(dirname "$d")"; done
+  return 0
+}
 
 # Senegal and Sierra Leone: Tmax / Tmin against two gridded truths (CHIRTS, ERA5).
 temperature_study() {
@@ -41,21 +51,42 @@ temperature_study() {
   done
 }
 
-# Kenya and Rwanda: rainfall against CHIRPS, tested on 2022 and 2024. 2023 is left out everywhere:
-# IFS has no 2023, and scoring it would compare unequal samples.
+# Kenya and Rwanda: rainfall, tested on 2022 and 2024. 2023 is left out everywhere: IFS
+# has no 2023, and scoring it would compare unequal samples. Every truth on disk is run:
+# CHIRPS (public) always, and any national data added with fetch_country.sh --from — a
+# gauge-corrected grid, or rain gauges (station).
 rainfall_study() {
-  python -m verification.run --model graphcast ifs --variable precipitation \
-      --metric mae bias pearsonr spearmanr --lead-day 1 3 5 7 --year 2022 2024 --product chirps
-
-  for model in graphcast ifs; do
-    python -m calibration.run --variable precipitation --model "$model" --leads 1,3,5,7 \
-        --train-years 2018,2019,2020,2021 --test-year 2022 --product chirps
-    python -m calibration.run --variable precipitation --model "$model" --leads 1,3,5,7 \
-        --train-years 2018,2019,2020,2021,2022 --test-year 2024 --product chirps
+  local product model
+  for product in $(truths gridded); do
+    echo "── gridded, against $product"
+    python -m verification.run --model graphcast ifs --variable precipitation \
+        --metric mae bias pearsonr spearmanr --lead-day 1 3 5 7 --year 2022 2024 --product "$product"
+    for model in graphcast ifs; do
+      python -m calibration.run --variable precipitation --model "$model" --leads 1,3,5,7 \
+          --train-years 2018,2019,2020,2021 --test-year 2022 --product "$product"
+      python -m calibration.run --variable precipitation --model "$model" --leads 1,3,5,7 \
+          --train-years 2018,2019,2020,2021,2022 --test-year 2024 --product "$product"
+    done
+    python -m verification.run --model graphcast-idr ifs-idr --variable precipitation \
+        --metric crps roc reliability cost_loss --lead-day 1 3 5 7 --year 2022 2024 --product "$product"
   done
 
-  python -m verification.run --model graphcast-idr ifs-idr --variable precipitation \
-      --metric crps roc reliability cost_loss --lead-day 1 3 5 7 --year 2022 2024 --product chirps
+  # Gauges need the forecasts read at the gauges too.
+  [ -d "$data/forecast/station" ] || return 0
+  for product in $(truths station); do
+    echo "── gauges, against $product"
+    # A single point has no spatial correlation: gauges get mae and bias only.
+    python -m verification.run --is-station --model graphcast ifs --variable precipitation \
+        --metric mae bias --lead-day 1 3 5 7 --year 2022 2024 --product "$product"
+    for model in graphcast ifs; do
+      python -m calibration.run_station --model "$model" --leads 1,3,5,7 \
+          --train-years 2018,2019,2020,2021 --test-year 2022 --product "$product"
+      python -m calibration.run_station --model "$model" --leads 1,3,5,7 \
+          --train-years 2018,2019,2020,2021,2022 --test-year 2024 --product "$product"
+    done
+    python -m verification.run --is-station --model graphcast-idr ifs-idr --variable precipitation \
+        --metric crps roc reliability cost_loss --lead-day 1 3 5 7 --year 2022 2024 --product "$product"
+  done
 }
 
 case "$country" in
