@@ -2,9 +2,9 @@
 #
 # Source: geoBoundaries gbOpen, RWA ADM2 (2012, CC BY 4.0, Open Data Rwanda) — the 30
 # districts, simplified geometry. Each district is tagged with its province (admin1Name)
-# by its overlap with geoBoundaries RWA ADM1 (2020); every district lies at least 99 %
-# inside one province. The 5 provinces are built as unions of their districts, so a
-# province can never disagree with the districts inside it.
+# by its overlap with geoBoundaries RWA ADM1 (2020, CC BY 4.0, The Rwanda Geo Portal);
+# every district lies at least 99 % inside one province. The 5 provinces are built as
+# unions of their districts, so a province can never disagree with the districts inside it.
 #
 # A copy at data/rwanda/assets/regions/regions.toml, if present, overrides this one.
 #

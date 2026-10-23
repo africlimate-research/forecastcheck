@@ -1,7 +1,7 @@
 # ForecastCheck — study parameters per country, editable without touching Python.
 #
-# One block of sections per country, keyed by its name: [Senegal.*], ["Sierra Leone".*],
-# [Kenya.*], [Rwanda.*].
+# One block of sections per country, keyed by its display name: [Senegal.*],
+# ["Sierra Leone".*] (quoted when the name has a space).
 #
 # Every section is optional: remove one and the code default applies. A section
 # REPLACES the default rather than merging with it, so list every value you want.

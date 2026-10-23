@@ -45,7 +45,8 @@ In **`config/verification.toml`** under `[Rwanda.*]`:
 | Regions | 5 provinces and 30 districts (`verification/assets/admin_boundaries/rwanda/`) |
 
 The boundaries are geoBoundaries gbOpen RWA ADM2 (2012, CC BY 4.0, Open Data Rwanda). Each
-district carries its province, taken from geoBoundaries RWA ADM1 (2020); the provinces are
+district carries its province, taken from geoBoundaries RWA ADM1 (2020, CC BY 4.0, The
+Rwanda Geo Portal); the provinces are
 unions of their districts. Curves are pooled per district.
 
 The altitude bands are cut so each holds a usable share of the land cells
