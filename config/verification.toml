@@ -1,7 +1,7 @@
 # ForecastCheck — study parameters per country, editable without touching Python.
 #
 # One block of sections per country, keyed by its name: [Senegal.*], ["Sierra Leone".*],
-# [Kenya.*].
+# [Kenya.*], [Rwanda.*].
 #
 # Every section is optional: remove one and the code default applies. A section
 # REPLACES the default rather than merging with it, so list every value you want.
@@ -110,3 +110,37 @@ label  = "FMAM (Feb–May)"        # long rains
 [Kenya.seasons.jjas]
 months = [6, 7, 8, 9]
 label  = "JJAS (Jun–Sep)"        # cool dry season
+
+
+# ═══════════════════════════════════════════════════════════════════════════ Rwanda
+# Rainfall, in mm/day, against CHIRPS: the same ladder as Kenya, so the two compare.
+# Rwanda is small (~830 land cells at 0.05°): read the event count before trusting a
+# high rung.
+[Rwanda.thresholds]
+precipitation = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60]
+
+
+# Elevation strata, in metres, half-open [low, high). Use [low, "inf"] for the top band.
+# "all" (every land cell) is added automatically — do not list it.
+# Cut so each band holds a usable share of the land cells (16 / 46 / 20 / 17 %).
+[Rwanda.altitude_bands]
+"0-1400"    = [0, 1400]          # eastern lowlands, Akagera, Bugarama
+"1400-1700" = [1400, 1700]       # central plateau
+"1700-2000" = [1700, 2000]       # northern and western hills
+">2000"     = [2000, "inf"]      # Congo-Nile ridge, Nyungwe, the volcanoes
+
+
+# Seasons the curves are pooled over. "yearly" is always offered; do not define it.
+# Rwanda's four seasons; each slug must not match a province or district name.
+[Rwanda.seasons.djf]
+months = [12, 1, 2]
+label  = "DJF (Dec–Feb)"         # short dry season (Urugaryi)
+[Rwanda.seasons.mam]
+months = [3, 4, 5]
+label  = "MAM (Mar–May)"         # long rains (Itumba)
+[Rwanda.seasons.jja]
+months = [6, 7, 8]
+label  = "JJA (Jun–Aug)"         # long dry season (Icyi)
+[Rwanda.seasons.son]
+months = [9, 10, 11]
+label  = "SON (Sep–Nov)"         # short rains (Umuhindo)

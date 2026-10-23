@@ -23,6 +23,11 @@ SEASONS: dict[str, tuple[str, tuple[int, ...] | None]] = {
     "ondj":   ("ONDJ (Oct–Jan)", (10, 11, 12, 1)),    # SL: end of the rains · KE: short rains
     "fmam":   ("FMAM (Feb–May)", (2, 3, 4, 5)),       # SL: heat peak · KE: long rains
     "jjas":   ("JJAS (Jun–Sep)", (6, 7, 8, 9)),       # SL: monsoon · KE: cool dry season
+    # Rwanda's four seasons.
+    "djf":    ("DJF (Dec–Feb)", (12, 1, 2)),           # short dry season (Urugaryi)
+    "mam":    ("MAM (Mar–May)", (3, 4, 5)),            # long rains (Itumba)
+    "jja":    ("JJA (Jun–Aug)", (6, 7, 8)),            # long dry season (Icyi)
+    "son":    ("SON (Sep–Nov)", (9, 10, 11)),          # short rains (Umuhindo)
 }
 
 #: Which seasons each country offers. ``yearly`` is implicit and always first; a country
@@ -33,6 +38,7 @@ SEASONS_BY_COUNTRY: dict[str, tuple[str, ...]] = {
     "Sierra Leone": ("ondj", "fmam", "jjas"),
     # Bimodal rains (April, November): fmam pools the driest month with the wettest.
     "Kenya": ("ondj", "fmam", "jjas"),
+    "Rwanda": ("djf", "mam", "jja", "son"),
 }
 
 DEFAULT_SEASON_SLUG: str = "yearly"

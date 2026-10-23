@@ -41,7 +41,7 @@ temperature_study() {
   done
 }
 
-# Kenya: rainfall against CHIRPS, tested on 2022 and 2024. 2023 is left out everywhere:
+# Kenya and Rwanda: rainfall against CHIRPS, tested on 2022 and 2024. 2023 is left out everywhere:
 # IFS has no 2023, and scoring it would compare unequal samples.
 rainfall_study() {
   python -m verification.run --model graphcast ifs --variable precipitation \
@@ -60,7 +60,7 @@ rainfall_study() {
 
 case "$country" in
   senegal|sierra_leone) temperature_study ;;
-  kenya)                rainfall_study ;;
+  kenya|rwanda)         rainfall_study ;;
   africa)
     echo "!! no country selected: write one to .deployment first, e.g. echo senegal > .deployment" >&2
     exit 2 ;;
