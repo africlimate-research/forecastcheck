@@ -113,6 +113,15 @@ def test_d6_every_country_file_is_complete(name):
         f"{name}: no [{country}.*] section in config/verification.toml")
 
 
+@pytest.mark.parametrize("name", config.available_deployments())
+def test_d6b_every_country_file_names_its_data_source(name):
+    """Without ``data_source``, ``fetch_country.sh --apply`` stops and asks for --from."""
+    with open(config.deployment_path(name), "rb") as fh:
+        source = tomllib.load(fh).get("data_source", "")
+    assert source.startswith("gs://") and source.endswith("-local-engine"), (
+        f"{name}: data_source should be a gs://…-local-engine folder, not {source!r}")
+
+
 def test_d7_the_shipped_countries():
     """The countries this repository ships; a new country adds its name here."""
     assert config.available_deployments() == ("kenya", "senegal", "sierra-leone")

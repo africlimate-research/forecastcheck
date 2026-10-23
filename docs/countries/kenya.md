@@ -16,11 +16,20 @@ echo kenya > .deployment
 
 ## Get the data
 
-Kenya's data is not in the public bucket yet, so `deployments/kenya.toml` has no
-`data_source`. Until it is, fetch from a local copy of the country folder:
+`deployments/kenya.toml` points at `gs://aim4scale_training_2026/demo5/KMD-local-engine`.
+First as a dry run (it lists what it would fetch), then with `--apply`:
 
 ```bash
-./scripts/fetch_country.sh --from /path/to/KEN-local-engine --apply
+./scripts/fetch_country.sh
+./scripts/fetch_country.sh --apply
+```
+
+The bucket needs credentials: `export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json`
+(e.g. on the DGX Spark), or `gcloud auth login`. Without access, fetch from a local copy of
+the country folder instead:
+
+```bash
+./scripts/fetch_country.sh --from /path/to/KMD-local-engine --apply
 ```
 
 ## Settings
