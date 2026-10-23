@@ -16,11 +16,29 @@ echo kenya > .deployment
 
 ## Get the data
 
-Kenya's data is not in the public bucket yet, so `deployments/kenya.toml` has no
-`data_source`. Until it is, fetch from a local copy of the country folder:
+`deployments/kenya.toml` points at `gs://aim4scale_training_2026/demo5/KMD-local-engine`,
+so the fetch script downloads straight from the bucket. First as a dry run (it lists what
+it would fetch), then with `--apply`:
 
 ```bash
-./scripts/fetch_country.sh --from /path/to/KEN-local-engine --apply
+export CLOUDSDK_STORAGE_SLICED_OBJECT_DOWNLOAD_THRESHOLD=0
+./scripts/fetch_country.sh
+./scripts/fetch_country.sh --apply
+```
+
+The `export` matters for Kenya. Its forecast files are about 12 MB, and on a machine with
+four or more CPUs (the DGX Spark) gcloud downloads files above 10 MB in slices, which it
+can only check with the `google-crc32c` library — missing from the conda environment. It
+then asks to install `gcloud-crc32c` and skips every large file (*"fast hash calculation
+tools are not installed"*). With the threshold at 0, each file is downloaded whole and
+checked with its MD5 instead, which needs nothing extra.
+
+The bucket needs credentials: `export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json`
+(e.g. on the DGX Spark), or `gcloud auth login`. Without access, fetch from a local copy of
+the country folder instead:
+
+```bash
+./scripts/fetch_country.sh --from /path/to/KMD-local-engine --apply
 ```
 
 ## Settings
