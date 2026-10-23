@@ -103,6 +103,34 @@ remote machine, forward the port: `ssh -L 8501:localhost:8501 <user>@<host>`.
 
 ---
 
+### Using your own national data
+
+The public data is a starting point. A met agency's own observations — rain gauges, or a
+gridded product corrected with them (ENACTS or similar) — usually say more, and often
+cannot be published. ForecastCheck uses them without them ever leaving your machine.
+
+Lay the data out like a country folder in the bucket, with only what you have:
+
+```
+<any-name>/
+├── raw/{gridded,station}/{variable}/{year}/{model}/{lead}h.nc       forecasts (station = at your gauges)
+└── target/{gridded,station}/{variable}/{PRODUCT}/{year}.nc          your observations
+```
+
+`PRODUCT` is any name you choose for the dataset (it becomes lowercase on disk). Then add
+it to what you already fetched, and run the pipeline as usual:
+
+```bash
+./scripts/fetch_country.sh --from /path/to/<any-name>          # dry run: lists what it adds
+./scripts/fetch_country.sh --from /path/to/<any-name> --apply
+./scripts/run_pipeline.sh                                     # now also scores against it
+```
+
+Every truth on disk is scored and appears in the dashboard next to the public ones;
+`--product <name>` selects it in a single command. Nothing has to be registered in the
+code. `data/` is never committed, so the data and every result computed from it stay on
+this machine — keep them there unless the data's owner agrees otherwise.
+
 ## How it works
 
 Three stages, connected only by the on-disk path scheme (`verification/store.py` owns it):

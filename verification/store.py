@@ -88,7 +88,10 @@ class TruthProduct:
     label: str
 
 
-#: Known truth products.
+#: The public truth products this build knows by name (for their display label). It is
+#: NOT the list of products a run may use: any truth folder a country holds on disk is a
+#: product too (:meth:`CountryStore._check_product`), so an agency's own national data —
+#: a gauge-corrected grid, its rain gauges — works without being named here.
 PRODUCTS: dict[str, TruthProduct] = {
     "chirts": TruthProduct(name="chirts", label="CHIRTS"),   # CHC gridded temperature
     # ECMWF's reanalysis: a model product, not an observation. Verifying against it
@@ -168,10 +171,16 @@ def require_unambiguous_product(store, target: str = GRIDDED) -> str | None:
     error naming what the country actually holds.
 
     A country with two products for a target and nothing configured resolves to
-    :data:`DEFAULT_PRODUCT`, which may not be one it has. Failing at argument-parsing
-    time, naming the options, beats a FileNotFoundError minutes into a run.
+    :data:`DEFAULT_PRODUCT`, which may not be one it has; a pinned product
+    (``--product``) must be one this build knows or this country holds. Failing at
+    argument-parsing time, naming the options, beats a FileNotFoundError minutes into a
+    run.
     """
-    if store.product is not None:                  # explicitly pinned: nothing to guess
+    if store.product is not None:                  # pinned: nothing to guess, but real?
+        try:
+            store._check_product(store.product)
+        except ValueError as exc:
+            return str(exc)
         return None
     have = store.products()
     if len(have) < 2:
@@ -777,10 +786,19 @@ class CountryStore:
             raise ValueError(f"target must be one of {TARGETS}, not {target!r}")
 
     def _check_product(self, product: str) -> None:
-        if product not in PRODUCTS:
-            raise ValueError(
-                f"unknown truth product {product!r}; "
-                f"expected one of {sorted(PRODUCTS)}")
+        """A product is usable if this build knows it by name or this country holds it.
+
+        The second half lets an agency verify against data that cannot be published (its
+        own gauges, a gauge-corrected national grid): copied into ``truth/{name}/``, it is
+        a product, and nothing about it has to appear in this repository. A name that is
+        neither is a typo, and fails here rather than as missing files minutes later.
+        """
+        if product in PRODUCTS or product in self.products():
+            return
+        held = sorted(self.products())
+        raise ValueError(
+            f"unknown truth product {product!r}: {self.country or 'this country'} holds "
+            f"{held if held else 'no truth data yet'} (known by name: {sorted(PRODUCTS)})")
 
     def _product(self, override: str | None, target: str = GRIDDED) -> str:
         """This call's product: an explicit override, else the store's, else the disk.

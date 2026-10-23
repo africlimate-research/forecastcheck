@@ -22,7 +22,7 @@ import numpy as np
 
 from verification import diagnostics as d
 from verification.regions import default_region, regions_for_domain
-from verification.store import BY_REGION_SUBDIR, PRODUCTS as _PRODUCTS
+from verification.store import BY_REGION_SUBDIR
 from verification.seasons import (DEFAULT_SEASON_SLUG, season_months,
                                   seasons_for_country)
 
@@ -325,9 +325,10 @@ def main():
     ap.add_argument("--n-bins", type=int, default=d.RELIABILITY_N_BINS)
     ap.add_argument("--is-station", action="store_true",
                     help="verify against gauge stations instead of the gridded product")
-    ap.add_argument("--product", default=None, choices=sorted(_PRODUCTS),
-                    help="observational product to verify against (default: the "
-                         "deployment's truth_product). Selects which truth/ and idr/ "
+    ap.add_argument("--product", default=None, metavar="PRODUCT",
+                    help="observational product to verify against: a public one (chirts, "
+                         "era5, chirps) or any truth folder this country holds, e.g. "
+                         "your own national data (default: the deployment's truth_product). Selects which truth/ and idr/ "
                          "trees are read AND the product segment written into the "
                          "diagnostics path, so scoring a country against a second "
                          "product never overwrites the first.")
