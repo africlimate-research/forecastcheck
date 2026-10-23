@@ -21,17 +21,9 @@ so the fetch script downloads straight from the bucket. First as a dry run (it l
 it would fetch), then with `--apply`:
 
 ```bash
-export CLOUDSDK_STORAGE_SLICED_OBJECT_DOWNLOAD_THRESHOLD=0
 ./scripts/fetch_country.sh
 ./scripts/fetch_country.sh --apply
 ```
-
-The `export` matters for Kenya. Its forecast files are about 12 MB, and on a machine with
-four or more CPUs (the DGX Spark) gcloud downloads files above 10 MB in slices, which it
-can only check with the `google-crc32c` library — missing from the conda environment. It
-then asks to install `gcloud-crc32c` and skips every large file (*"fast hash calculation
-tools are not installed"*). With the threshold at 0, each file is downloaded whole and
-checked with its MD5 instead, which needs nothing extra.
 
 The bucket needs credentials: `export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json`
 (e.g. on the DGX Spark), or `gcloud auth login`. Without access, fetch from a local copy of

@@ -29,7 +29,9 @@
 # except with --from.
 #
 # Re-running is safe: rsync copies only what is missing or changed, and never leaves a
-# half-written file behind, so an interrupted download simply resumes.
+# half-written file behind, so an interrupted download simply resumes. After --apply the
+# script counts what arrived against what the source holds, and fails if anything is
+# missing rather than reporting "done".
 #
 # Usage:  ./scripts/fetch_country.sh                 # dry run: list what would be fetched
 #         ./scripts/fetch_country.sh --apply
@@ -85,6 +87,7 @@ if [ -n "$FROM" ]; then
     exit 1; }
   SOURCE=$(cd "$FROM" && pwd)
   ls_dirs() { find "$SOURCE/$1" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort; }
+  ls_files() { find "$1" -type f -name '*.nc'; }
   # rsync filter: every year folder, but only the chosen model folders inside it.
   sync_forecasts() {
     local rules=(--include='/*/')
@@ -108,9 +111,15 @@ else
       exit 1; }
     export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE="${CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE:-$GOOGLE_APPLICATION_CREDENTIALS}"
   fi
+  # Download every file whole. On a machine with 4+ CPUs (the DGX Spark) gcloud splits a
+  # file above 10 MB into slices, which it can verify only with the google-crc32c
+  # library; without it, it SKIPS the file. Senegal's and Kenya's forecasts are 12-15 MB.
+  # Whole files are verified by MD5, which needs nothing extra. A value you set wins.
+  export CLOUDSDK_STORAGE_SLICED_OBJECT_DOWNLOAD_THRESHOLD="${CLOUDSDK_STORAGE_SLICED_OBJECT_DOWNLOAD_THRESHOLD:-0}"
   ls_dirs() {
     gcloud storage ls "$SOURCE/$1/" | sed -E 's#/$##; s#.*/##' | sort
   }
+  ls_files() { gcloud storage ls "$1/**" | { grep '\.nc$' || true; }; }
   # gcloud's --exclude is a Python regex on the path relative to the source folder.
   sync_forecasts() {
     gcloud storage rsync -r ${DRY:+--dry-run} --exclude="^[0-9]{4}/(?!($MODELS)/)" "$1" "$2"
@@ -131,18 +140,37 @@ variables=$(ls_dirs raw/gridded) || {
   exit 1; }
 [ -n "$variables" ] || { echo "!! no forecasts under $SOURCE/raw/gridded" >&2; exit 1; }
 
+# After --apply, every file the source holds must be here. A download tool that skips a
+# file it cannot verify must not end in "done": count what the source has (forecasts
+# through the same model filter) and what arrived, and remember any shortfall.
+FORECAST_FILE="/[0-9]{4}/($MODELS)/[^/]+\.nc$"
+missing=0
+check_arrived() {   # check_arrived <source folder> <destination folder> <path regex>
+  [ -z "$DRY" ] || return 0
+  local want have
+  want=$(ls_files "$1" | { grep -Ec "$3" || true; })
+  have=$(find "$2" -type f -name '*.nc' 2>/dev/null | { grep -Ec "$3" || true; })
+  if [ "$have" -lt "$want" ]; then
+    echo "  !! only $have of $want files arrived in $2" >&2
+    missing=$((missing + want - have))
+  fi
+}
+
 for bucket_var in $variables; do
   var=$(local_var "$bucket_var")
   if [ -z "$var" ]; then echo "  note: skipping unknown variable '$bucket_var'"; continue; fi
   echo "── forecasts: $var"
   [ -n "$DRY" ] || mkdir -p "$DEST/forecast/gridded/$var"
   sync_forecasts "$SOURCE/raw/gridded/$bucket_var" "$DEST/forecast/gridded/$var"
+  check_arrived "$SOURCE/raw/gridded/$bucket_var" "$DEST/forecast/gridded/$var" "$FORECAST_FILE"
   products=$(ls_dirs "target/gridded/$bucket_var")
   for product in $products; do
     lower=$(printf '%s' "$product" | tr '[:upper:]' '[:lower:]')
     echo "── truth: $var, $lower"
     [ -n "$DRY" ] || mkdir -p "$DEST/truth/$lower/gridded/$var"
     sync_tree "$SOURCE/target/gridded/$bucket_var/$product" "$DEST/truth/$lower/gridded/$var"
+    check_arrived "$SOURCE/target/gridded/$bucket_var/$product" \
+                  "$DEST/truth/$lower/gridded/$var" '\.nc$'
   done
 done
 
@@ -157,6 +185,10 @@ fi
 
 if [ -n "$DRY" ]; then
   echo "DRY RUN — nothing was downloaded. Re-run with --apply."
+elif [ "$missing" -gt 0 ]; then
+  echo "!! $missing file(s) did not arrive (see above). Re-run the same command to resume;" >&2
+  echo "   if they are skipped again, read the messages above this one." >&2
+  exit 1
 else
   echo "done — data is in $DEST"
 fi
