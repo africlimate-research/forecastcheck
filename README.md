@@ -203,7 +203,7 @@ naming the country and key. Old result files are not deleted; they stop being se
 | `deployments/` | one file per country |
 | `config/verification.toml` | thresholds, altitude bands, seasons, per country |
 | `docs/countries/` | one page per country |
-| `docs/demo5/` | the training lesson for Senegal and Sierra Leone (fetch, run, read the dashboard) |
+| `docs/demo5/` | the training lesson, in two tracks: Heat (Senegal, Sierra Leone) and Rainfall (Kenya, Rwanda) |
 | `scripts/` | `fetch_country.sh` (data) and `run_pipeline.sh` (whole pipeline), both for this machine's country |
 | `docker/` | the image (`Dockerfile`) and `run.sh`, every command with Docker |
 | `tools/compare_runs.py` | zero-tolerance diff of two output trees |
