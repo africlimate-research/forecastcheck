@@ -9,7 +9,7 @@ questions:
 - "How do we read MAE, bias, correlation, CRPS, ROC, reliability and cost-loss value, and which question does each answer?"
 objectives:
 - "Set up ForecastCheck on the DGX Spark with Docker and fetch your country's forecasts and truth data from the cloud bucket (Heat: Senegal, Sierra Leone; Rainfall: Kenya, Rwanda)."
-- "Run the three pipeline stages (raw metrics, IDR calibration, calibrated metrics) from the command line."
+- "Start the three pipeline stages (raw metrics, IDR calibration, calibrated metrics) with one command, and know the command behind each stage."
 - "Explain how IDR turns a single forecast value into a calibrated probability distribution, and why it is trained and tested on different years."
 - "Interpret deterministic, probabilistic and threshold diagnostics in the ForecastCheck dashboard, per region, season and altitude band."
 - "Identify what the results depend on (truth product, years, thresholds, sample size) and carry those questions into the ground truth challenge."
@@ -42,7 +42,7 @@ You will do this with **ForecastCheck**, a local verification framework. Each ag
 By the end of this lesson, you will be able to:
 
 - Set up ForecastCheck with Docker and fetch a country's data from the cloud bucket.
-- Run raw verification, IDR calibration and calibrated verification from the command line.
+- Run the whole pipeline with one command, and find the command behind each stage.
 - Explain how IDR is trained and what it produces.
 - Read MAE, bias, correlation, CRPS, ROC/AUC, reliability diagrams and cost-loss value curves.
 - Use the dashboard to compare models by region, season, altitude band and lead time.
@@ -54,12 +54,12 @@ By the end of this lesson, you will be able to:
 | --- | --- |
 | 1. From One Forecast to a Track Record | The question, the two tracks and four countries, what is verified |
 | 2. ForecastCheck in One Picture | The three stages and the files that connect them |
-| 3. Set Up on the DGX Spark | The Docker image, your country, the dashboard |
-| 4. Get the Data from the Cloud | What is in the bucket, and how to fetch it |
+| 3. Set Up and Start Everything | One block of commands: the image, your country, the data, the pipeline, the dashboard |
+| 4. The Data | What `fetch` brought in, and how to add your own data |
 | 5. The Country Settings | Thresholds, seasons, altitude bands and regions |
-| 6. Stage 1: Raw Forecast Metrics | MAE, bias and correlation |
-| 7. Stage 2: Calibration with IDR | How the calibration is trained and applied |
-| 8. Stage 3: Calibrated Metrics | CRPS, ROC, reliability and cost-loss value |
+| 6. Stage 1: Raw Forecast Metrics | What the pipeline does first: MAE, bias and correlation |
+| 7. Stage 2: Calibration with IDR | What it does next: how the calibration is trained and applied |
+| 8. Stage 3: Calibrated Metrics | What it does last: CRPS, ROC, reliability and cost-loss value |
 | 9. The Dashboard | A guided tour, page by page |
 | 10. What the Results Say | The Heat track and the Rainfall track, side by side |
 | 11. Before You Quote a Number | Limits of the data, and the bridge to Demo 6 |
@@ -131,9 +131,11 @@ Two naming rules make the files self-describing:
 - A model token without a suffix (`graphcast`, `ifs`) is the **raw** forecast. The suffix `-idr` (`graphcast-idr`) is the **calibrated** one.
 - Anything derived from observations carries the name of the truth product it came from (`chirts`, `era5` or `chirps`). A raw forecast does not.
 
-## 3. Set Up on the DGX Spark
+## 3. Set Up and Start Everything
 
 ForecastCheck runs in **Docker**, the way the demos of Demos 1–3 do: one image holds everything (the Python environment, the Google Cloud tools, the map data), and one script, `docker/run.sh`, wraps every command so you never type Docker flags. The Spark's rootless Docker from Demo 1 is all you need; ForecastCheck needs no GPU.
+
+You type **one block of commands**, now. The computation then runs in the background, and Sections 4–8 explain what it is doing, stage by stage, while it works.
 
 Log in to the Spark with a port forward, so the dashboard will reach your laptop. ForecastCheck uses port **8502**, so it does not collide with the course app on 8501:
 
@@ -154,22 +156,35 @@ bash docker/run.sh build              # or: bash docker/run.sh load forecastchec
 # 3. Choose your country: senegal, sierra-leone, kenya or rwanda
 echo senegal > .deployment
 
-# 4. Start the dashboard; it stays up until you stop it
+# 4. Fetch your country's data (Section 4 explains what arrives)
+export GOOGLE_APPLICATION_CREDENTIALS=/etc/fleet-gcs-key.json
+bash docker/run.sh fetch --apply
+
+# 5. Start the whole pipeline: it runs in the background, even if you log out
+bash docker/run.sh pipeline
+
+# 6. Start the dashboard; it stays up until you stop it
 bash docker/run.sh start
 ```
 
-Open <http://localhost:8502> on your laptop. It is empty until your data arrives (Section 4).
+Open <http://localhost:8502> on your laptop. The dashboard fills in when the pipeline ends: it restarts by itself, so refresh the browser. To see where the pipeline is, `bash docker/run.sh logs pipeline` (Ctrl-C stops following, not the run).
+
+| | Senegal | Sierra Leone | Kenya | Rwanda |
+| --- | --- | --- | --- | --- |
+| Whole pipeline | about 1.5 h | about 45 min | about 10 min | under 2 min |
+| Results on disk | about 19 GB | about 7 GB | about 9 GB | about 1.4 GB |
+
+*Heat-track times measured on a DGX Spark, Rainfall-track times on a 12-core laptop. Most of the disk goes to the calibrated threshold probabilities. If the session is short, your trainer may have run the pipeline for your country in advance; the dashboard then shows the results at once.*
 
 > #### Where you type the commands
 >
-> - **In the Spark's terminal**: `bash docker/run.sh …`, to `start`, `fetch`, run the `pipeline`, follow `logs`, see the `status`, `restart` or `stop`.
-> - **Inside ForecastCheck**: the `python -m …` commands of Sections 6–8. Open a terminal inside the image once, and type them exactly as this lesson shows them:
+> Everything above runs in the Spark's terminal, and so do `status`, `logs`, `restart` and `stop`. The `python -m …` commands shown in Sections 6–8 are the ones `pipeline` runs for you. To try one yourself, open a terminal inside ForecastCheck, where they work exactly as shown:
 >
 > ```bash
 > bash docker/run.sh shell              # the prompt changes; type `exit` to leave
 > ```
 >
-> A single command also works from the Spark's terminal: `bash docker/run.sh run python -m verification.run …`. Either way, everything reads and writes the same `data/` folder on the Spark. `bash docker/run.sh help` lists every command.
+> Or run a single one from the Spark's terminal: `bash docker/run.sh run python -m verification.run …`. Everything reads and writes the same `data/` folder. `bash docker/run.sh help` lists every command.
 {: .tip}
 
 > #### Which country am I?
@@ -182,7 +197,7 @@ Open <http://localhost:8502> on your laptop. It is empty until your data arrives
 > On a machine without Docker, use conda instead: `conda env create -f environment.yml` and `conda activate forecastcheck`, then drop `bash docker/run.sh` from the commands (`./scripts/fetch_country.sh`, `./scripts/run_pipeline.sh`, and `streamlit run ui/app.py` for the dashboard, on port 8501). The repository's README has the details.
 {: .tip}
 
-## 4. Get the Data from the Cloud
+## 4. The Data
 
 ### 4.1 What is in the bucket
 
@@ -210,9 +225,9 @@ gs://aim4scale_training_2026/demo5/KMD-local-engine/
 
 Rainfall in the forecast files is in **mm/hr** (the day's total divided by 24); the truth is in **mm/day**. ForecastCheck converts for you. Each value is the rain for one day, 06 UTC to 06 UTC, the same window as the observations.
 
-### 4.2 Fetch it
+### 4.2 How `fetch` works
 
-The bucket is read-only and private to the training. On the DGX Spark a key that can read it is already installed; tell the Google Cloud tools where it is, **by its path**:
+The bucket is read-only and private to the training. On the DGX Spark a key that can read it is already installed; the `export` line of Section 3 tells the Google Cloud tools where it is, **by its path**:
 
 ```bash
 export GOOGLE_APPLICATION_CREDENTIALS=/etc/fleet-gcs-key.json
@@ -220,14 +235,14 @@ export GOOGLE_APPLICATION_CREDENTIALS=/etc/fleet-gcs-key.json
 
 Never open the key, paste its contents into a file or a chat, or copy it elsewhere: the path is all anyone needs. The variable lasts for the current terminal; set it again in a new one.
 
-`bash docker/run.sh fetch` knows your country from `.deployment` and where its data lives from the country file. It downloads the GraphCast and IFS forecasts, every truth product in your country's folder (CHIRTS and ERA5 for Heat, CHIRPS for Rainfall) and the elevation map, and lays the files out the way ForecastCheck expects. Always look before you download: without `--apply` it only lists what it would fetch.
+`bash docker/run.sh fetch` knows your country from `.deployment` and where its data lives from the country file. It downloads the GraphCast and IFS forecasts, every truth product in your country's folder (CHIRTS and ERA5 for Heat, CHIRPS for Rainfall) and the elevation map, and lays the files out the way ForecastCheck expects. Without `--apply` it only lists what it would fetch: a good habit before a large download.
 
 ```bash
 bash docker/run.sh fetch              # dry run: lists what would be fetched
 bash docker/run.sh fetch --apply      # downloads
 ```
 
-Every team runs the same two commands.
+Every team runs the same commands. What Section 3's fetch brought in:
 
 | | Senegal | Sierra Leone | Kenya | Rwanda |
 | --- | --- | --- | --- | --- |
@@ -332,7 +347,13 @@ For $N$ pairs of forecast $f_i$ and observation $o_i$:
 > Rainfall scores (MAE, bias, CRPS) are stored and plotted in **mm/hr**: a daily total divided by 24. Multiply by 24 before you quote one: 0.04 mm/hr is about 1 mm/day. Thresholds are always in **mm/day**.
 {: .warning}
 
-### 6.3 Run it
+### 6.3 Under the hood
+
+This is the first thing `pipeline` does. Each result lands in a file whose path names the model, the variable, the truth product, the metric, the year and the lead time.
+
+<details>
+<summary><strong>The commands it runs, and what they print</strong></summary>
+<br>
 
 **Heat track:**
 
@@ -364,7 +385,7 @@ graphcast | lead 1d (24h) | temperature_max | gridded 2022
   …
 ```
 
-The path tells you everything about a result: model, variable, truth product, metric, year and lead time.
+</details>
 
 > #### Two kinds of correlation
 >
@@ -409,7 +430,11 @@ For each day of the test year, each grid cell and each lead time, `calibration.r
 | `crps` | The score of the whole distribution against the observation (see Section 8) |
 | `pit` | Where the observation fell in the distribution (0 to 1); used to check calibration |
 
-### 7.4 Run it
+### 7.4 Under the hood
+
+<details>
+<summary><strong>The commands <code>pipeline</code> runs for this stage</strong></summary>
+<br>
 
 ```bash
 python -m calibration.run --variable temperature_max --model graphcast --leads 1,3,5,7 --train-years 2016,2017,2018,2019,2020,2021 --test-year 2022 --product chirts
@@ -433,23 +458,15 @@ For each lead it prints how many grid cells received a calibrated forecast:
   lead 1d (24h) -> data/senegal/idr/chirts/gridded/temperature_max/2022/graphcast/24h.nc  (calibrated cells: 15476)
 ```
 
-Calibration is the slow stage, because it fits one model per grid cell (about 15,000 in Senegal, 7,000 in Sierra Leone, 11,000 in Kenya, 1,700 in Rwanda). Measured times:
+</details>
 
-| Country | GraphCast, 4 leads | IFS, 4 leads | Whole pipeline, both truths | Calibrated files on disk |
-| --- | --- | --- | --- | --- |
-| Senegal | about 13 min | about 6.5 min | about 1.5 h | about 19 GB |
-| Sierra Leone | about 6 min | about 3 min | about 45 min | about 7 GB |
+Calibration is the slow stage, because it fits one model per grid cell: about 15,000 in Senegal, 7,000 in Sierra Leone, 11,000 in Kenya, 1,700 in Rwanda. That is most of the pipeline's time in the table of Section 3.
 
-| Rainfall track | Whole pipeline (one truth, both models, both test years) | Calibrated files on disk |
-| --- | --- | --- |
-| Kenya | about 10 min on a 12-core laptop | about 9 GB |
-| Rwanda | under 2 min on a 12-core laptop | about 1.4 GB |
+The calibrated files are large, mostly because of the threshold probabilities (`p_exceed`): Senegal has nine thresholds, the Rainfall countries thirteen.
 
-The calibrated files are large, mostly because of the threshold probabilities (`p_exceed`): Senegal has nine thresholds, the Rainfall countries thirteen. Check the free disk space before running everything.
-
-> #### In class: run a small slice, read the full results
+> #### Optional: watch one calibration live
 >
-> The complete pipeline has already been run on the Spark for every country, so the dashboard has everything. In the session, each team runs **one** calibration live, to see it work. Heat track:
+> Your pipeline does the full calibration for you. To see IDR fit with your own eyes, run one small slice in `bash docker/run.sh shell`, **once `bash docker/run.sh status` says the pipeline is not running**: both would write the same files. Heat track:
 >
 > ```bash
 > python -m calibration.run --variable temperature_max --model graphcast --leads 1,3 --train-years 2016,2017,2018,2019,2020,2021 --test-year 2022 --product chirts
@@ -461,7 +478,7 @@ The calibrated files are large, mostly because of the threshold probabilities (`
 > python -m calibration.run --variable precipitation --model graphcast --leads 1,3 --train-years 2018,2019,2020,2021 --test-year 2022 --product chirps
 > ```
 >
-> It takes about 5–10 minutes. Use the time for Exercise 3.
+> It takes a few minutes (Heat about 5–10, Rainfall less). Use the time for Exercise 3.
 {: .tip}
 
 > #### What IDR can and cannot do (recap from Demo 4)
@@ -470,6 +487,12 @@ The calibrated files are large, mostly because of the threshold probabilities (`
 {: .tip}
 
 ## 8. Stage 3: Calibrated Metrics
+
+This is the last thing `pipeline` does: it scores the calibrated forecasts of Stage 2. When it ends, the dashboard restarts by itself.
+
+<details>
+<summary><strong>The commands it runs</strong></summary>
+<br>
 
 ```bash
 python -m verification.run --model graphcast-idr ifs-idr --variable temperature_max --metric crps roc reliability cost_loss --lead-day 1 3 5 7 --year 2022 --product chirts
@@ -482,14 +505,7 @@ python -m verification.run --model graphcast-idr ifs-idr --variable temperature_
 python -m verification.run --model graphcast-idr ifs-idr --variable precipitation --metric crps roc reliability cost_loss --lead-day 1 3 5 7 --year 2022 2024 --product chirps
 ```
 
-In either track, one command in the Spark's terminal runs all three stages at once, for every truth your country holds:
-
-```bash
-bash docker/run.sh pipeline           # runs in the background, even if you log out
-bash docker/run.sh logs pipeline      # follow it (Ctrl-C stops following, not the run)
-```
-
-When it ends, the dashboard restarts by itself: refresh the browser to see the results.
+</details>
 
 ### 8.1 CRPS: the score of a whole distribution
 
@@ -783,14 +799,14 @@ Work in your country team. Exercises 1–3 run while the pipeline computes; Exer
 
 > #### Exercise 1: Read Before You Download (5 min)
 >
-> 1. Run `bash docker/run.sh fetch` **without** `--apply`. How many files would it fetch?
+> 1. Run `bash docker/run.sh fetch` again, **without** `--apply`. Why does it now find nothing to fetch? How many files did Section 3's fetch bring in (Section 4.2)?
 > 2. Which lead times are in the bucket? Which one is not in the pipeline commands, and why might that be?
 > 3. Open `config/verification.toml`. Write down your country's thresholds, seasons and altitude bands.
 {: .exercise}
 
 > #### Exercise 2: Predict, Then Measure (10 min)
 >
-> Before running Stage 1, write down your predictions, then compare them with the dashboard (National Overview, Raw Forecast Metrics).
+> While the pipeline runs, write down your predictions, then compare them with the dashboard when it is done (National Overview, Raw Forecast Metrics).
 >
 > 1. Will MAE grow or shrink from day 1 to day 7? By roughly how much?
 > 2. Will GraphCast or IFS have the lower MAE at day 1? At day 7?
