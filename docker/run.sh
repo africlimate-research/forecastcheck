@@ -51,6 +51,10 @@ country() {
 }
 
 need_image() {
+  # Docker not answering (stopped, or still waking up) is a different problem from a
+  # missing image; telling them apart keeps anyone from rebuilding for nothing.
+  docker info >/dev/null 2>&1 \
+    || die "Docker is not answering. Start it (DGX Spark: systemctl --user restart docker), then try again."
   docker image inspect "$IMAGE" >/dev/null 2>&1 \
     || die "no '$IMAGE' image yet: run 'bash docker/run.sh build' (or 'load FILE')"
 }

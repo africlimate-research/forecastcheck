@@ -8,7 +8,7 @@ questions:
 - "What does calibration with IDR change in a forecast, how is it trained, and how do we know it helped?"
 - "How do we read MAE, bias, correlation, CRPS, ROC, reliability and cost-loss value, and which question does each answer?"
 objectives:
-- "Set up ForecastCheck on the DGX Spark with conda and fetch your country's forecasts and truth data from the cloud bucket (Heat: Senegal, Sierra Leone; Rainfall: Kenya, Rwanda)."
+- "Set up ForecastCheck on the DGX Spark with Docker and fetch your country's forecasts and truth data from the cloud bucket (Heat: Senegal, Sierra Leone; Rainfall: Kenya, Rwanda)."
 - "Run the three pipeline stages (raw metrics, IDR calibration, calibrated metrics) from the command line."
 - "Explain how IDR turns a single forecast value into a calibrated probability distribution, and why it is trained and tested on different years."
 - "Interpret deterministic, probabilistic and threshold diagnostics in the ForecastCheck dashboard, per region, season and altitude band."
@@ -32,7 +32,7 @@ You will do this with **ForecastCheck**, a local verification framework. Each ag
 
 > #### Prerequisites
 >
-> - An account on the DGX Spark and the SSH tunnel from [Demo 1](https://github.com/mesfind/ai_weather/blob/main/docs/_episodes/01-setup.md). You do **not** need Docker for this demo, and you do **not** need a Google Cloud account.
+> - An account on the DGX Spark and the SSH tunnel from [Demo 1](https://github.com/mesfind/ai_weather/blob/main/docs/_episodes/01-setup.md). ForecastCheck runs in the Spark's rootless Docker, as in Demos 1–3. You do **not** need a GPU or a Google Cloud account.
 > - Your use case from [Demo 3](https://github.com/mesfind/ai_weather/blob/main/docs/_episodes/03-forecast.md): temperature exceedance (what a hot-day threshold is) or precipitation exceedance (what a heavy-rain threshold is), and what a lead time is.
 > - The IDR section of [Demo 4](https://github.com/mesfind/ai_weather/blob/main/docs/_episodes/04-weather-model.md) (what calibration can and cannot fix).
 {: .prereq}
@@ -41,7 +41,7 @@ You will do this with **ForecastCheck**, a local verification framework. Each ag
 
 By the end of this lesson, you will be able to:
 
-- Set up ForecastCheck with conda and fetch a country's data from the cloud bucket.
+- Set up ForecastCheck with Docker and fetch a country's data from the cloud bucket.
 - Run raw verification, IDR calibration and calibrated verification from the command line.
 - Explain how IDR is trained and what it produces.
 - Read MAE, bias, correlation, CRPS, ROC/AUC, reliability diagrams and cost-loss value curves.
@@ -54,7 +54,7 @@ By the end of this lesson, you will be able to:
 | --- | --- |
 | 1. From One Forecast to a Track Record | The question, the two tracks and four countries, what is verified |
 | 2. ForecastCheck in One Picture | The three stages and the files that connect them |
-| 3. Set Up on the DGX Spark | conda environment and your country |
+| 3. Set Up on the DGX Spark | The Docker image, your country, the dashboard |
 | 4. Get the Data from the Cloud | What is in the bucket, and how to fetch it |
 | 5. The Country Settings | Thresholds, seasons, altitude bands and regions |
 | 6. Stage 1: Raw Forecast Metrics | MAE, bias and correlation |
@@ -102,7 +102,7 @@ ForecastCheck has three stages. They never call each other: each one writes NetC
 ```
                  cloud bucket  gs://aim4scale_training_2026/demo5/{SEN|SLE}-local-engine
                       │
-                      │  scripts/fetch_country.sh
+                      │  bash docker/run.sh fetch
                       ▼
  data/{country}/forecast/…    raw GraphCast / IFS forecasts
  data/{country}/truth/{product}/…      observations (chirts, era5, chirps)
@@ -123,7 +123,7 @@ ForecastCheck has three stages. They never call each other: each one writes NetC
  data/{country}/diagnostics/…   ◄────────────────────┘
                       │
                       ▼
-               streamlit run ui/app.py   (the dashboard)
+               bash docker/run.sh start   (the dashboard)
 ```
 
 Two naming rules make the files self-describing:
@@ -133,42 +133,53 @@ Two naming rules make the files self-describing:
 
 ## 3. Set Up on the DGX Spark
 
-Log in to the Spark with the port forward from Demo 1, so the dashboard will reach your laptop later:
+ForecastCheck runs in **Docker**, the way the demos of Demos 1–3 do: one image holds everything (the Python environment, the Google Cloud tools, the map data), and one script, `docker/run.sh`, wraps every command so you never type Docker flags. The Spark's rootless Docker from Demo 1 is all you need; ForecastCheck needs no GPU.
+
+Log in to the Spark with a port forward, so the dashboard will reach your laptop. ForecastCheck uses port **8502**, so it does not collide with the course app on 8501:
 
 ```bash
-ssh -L 8501:localhost:8501 <user>@<spark>
+ssh -L 8502:localhost:8502 <user>@<spark>
 ```
 
-ForecastCheck runs in a **conda** environment. If `conda --version` already prints a version, skip the Miniforge install.
+Then:
 
 ```bash
-# 1. Install Miniforge (once per account)
-curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-bash Miniforge3-$(uname)-$(uname -m).sh -b
-~/miniforge3/bin/conda init
-source ~/.bashrc
-```
-
-Close the terminal, open a new one (with the same `ssh -L` command), then:
-
-```bash
-# 2. Get the code
+# 1. Get the code
 git clone https://github.com/africlimate-research/forecastcheck.git
 cd forecastcheck
 
-# 3. Create and activate the environment (about 5 minutes)
-conda env create -f environment.yml
-conda activate forecastcheck
+# 2. Get the image: build it (about 5 minutes), or load the one your trainer gives you
+bash docker/run.sh build              # or: bash docker/run.sh load forecastcheck-image.tar.gz
 
-# 4. Choose your country: senegal, sierra-leone, kenya or rwanda
+# 3. Choose your country: senegal, sierra-leone, kenya or rwanda
 echo senegal > .deployment
+
+# 4. Start the dashboard; it stays up until you stop it
+bash docker/run.sh start
 ```
 
-Every command in this demo runs inside `forecastcheck`. A new terminal needs `conda activate forecastcheck` again.
+Open <http://localhost:8502> on your laptop. It is empty until your data arrives (Section 4).
+
+> #### Where you type the commands
+>
+> - **In the Spark's terminal**: `bash docker/run.sh …`, to `start`, `fetch`, run the `pipeline`, follow `logs`, see the `status`, `restart` or `stop`.
+> - **Inside ForecastCheck**: the `python -m …` commands of Sections 6–8. Open a terminal inside the image once, and type them exactly as this lesson shows them:
+>
+> ```bash
+> bash docker/run.sh shell              # the prompt changes; type `exit` to leave
+> ```
+>
+> A single command also works from the Spark's terminal: `bash docker/run.sh run python -m verification.run …`. Either way, everything reads and writes the same `data/` folder on the Spark. `bash docker/run.sh help` lists every command.
+{: .tip}
 
 > #### Which country am I?
 >
-> The one-line file `.deployment` decides: `senegal`, `sierra-leone`, `kenya` or `rwanda`. Every team runs the same code from the same `main`; the country file it names (for example `deployments/kenya.toml`) sets the map, the regions, the seasons and where the data comes from. `.deployment` is not in git, so `git pull` never changes it. There is nothing else to set.
+> The one-line file `.deployment` decides: `senegal`, `sierra-leone`, `kenya` or `rwanda`. Every team runs the same code from the same `main`; the country file it names (for example `deployments/kenya.toml`) sets the map, the regions, the seasons and where the data comes from. `.deployment` is not in git, so `git pull` never changes it. There is nothing else to set. If you change it, run `bash docker/run.sh restart` so the dashboard follows.
+{: .tip}
+
+> #### Without Docker
+>
+> On a machine without Docker, use conda instead: `conda env create -f environment.yml` and `conda activate forecastcheck`, then drop `bash docker/run.sh` from the commands (`./scripts/fetch_country.sh`, `./scripts/run_pipeline.sh`, and `streamlit run ui/app.py` for the dashboard, on port 8501). The repository's README has the details.
 {: .tip}
 
 ## 4. Get the Data from the Cloud
@@ -209,11 +220,11 @@ export GOOGLE_APPLICATION_CREDENTIALS=/etc/fleet-gcs-key.json
 
 Never open the key, paste its contents into a file or a chat, or copy it elsewhere: the path is all anyone needs. The variable lasts for the current terminal; set it again in a new one.
 
-`scripts/fetch_country.sh` knows your country from `.deployment` and where its data lives from the country file. It downloads the GraphCast and IFS forecasts, every truth product in your country's folder (CHIRTS and ERA5 for Heat, CHIRPS for Rainfall) and the elevation map, and lays the files out the way ForecastCheck expects. Always look before you download: without `--apply` it only lists what it would fetch.
+`bash docker/run.sh fetch` knows your country from `.deployment` and where its data lives from the country file. It downloads the GraphCast and IFS forecasts, every truth product in your country's folder (CHIRTS and ERA5 for Heat, CHIRPS for Rainfall) and the elevation map, and lays the files out the way ForecastCheck expects. Always look before you download: without `--apply` it only lists what it would fetch.
 
 ```bash
-./scripts/fetch_country.sh            # dry run: lists what would be fetched
-./scripts/fetch_country.sh --apply    # downloads
+bash docker/run.sh fetch              # dry run: lists what would be fetched
+bash docker/run.sh fetch --apply      # downloads
 ```
 
 Every team runs the same two commands.
@@ -227,22 +238,22 @@ Re-running is safe: it copies only what is missing or changed, and never leaves 
 
 > #### If the fetch stops
 >
-> - *"cannot read gs://…"*: the key is not set in this terminal. Run the `export` line above again. (The script also sets `CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE` to the same path, which some setups need.)
-> - *"needs the Google Cloud CLI"*: the conda environment is not active; run `conda activate forecastcheck`.
+> - *"the data bucket needs a Google Cloud key"*: the key is not set in this terminal. Run the `export` line above, then the command again.
+> - *"cannot read gs://…"*: the key is set but cannot read the bucket. Check the path in the `export` line. (The script also sets `CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE` to the same path, which some setups need.)
 > - No network, or a slow one? Your trainer can give you a copy of the country folder (for example on a shared disk). Point the script at it; nothing is downloaded and the result is identical:
 >
 > ```bash
-> ./scripts/fetch_country.sh --from /path/to/SEN-local-engine --apply
+> bash docker/run.sh fetch --from /path/to/SEN-local-engine --apply
 > ```
 {: .warning}
 
 > #### Adding your own national data
 >
-> Your trainer may give you national data that cannot be published, for example rain-gauge records or a gridded product corrected with gauges, on a flash disk. It comes as a folder laid out like the bucket's. Add it with the same script; it is placed next to what you already fetched, and every later step includes it:
+> Your trainer may give you national data that cannot be published, for example rain-gauge records or a gridded product corrected with gauges, on a flash disk. It comes as a folder laid out like the bucket's. Add it with the same command; the folder is only read, never changed, and the data is placed next to what you already fetched, so every later step includes it:
 >
 > ```bash
-> ./scripts/fetch_country.sh --from /media/$USER/<flash-disk>/<folder>          # dry run
-> ./scripts/fetch_country.sh --from /media/$USER/<flash-disk>/<folder> --apply
+> bash docker/run.sh fetch --from /media/$USER/<flash-disk>/<folder>          # dry run
+> bash docker/run.sh fetch --from /media/$USER/<flash-disk>/<folder> --apply
 > ```
 >
 > It stays on this machine: `data/` is never committed, and results computed from it are not shared outside the class.
@@ -471,7 +482,14 @@ python -m verification.run --model graphcast-idr ifs-idr --variable temperature_
 python -m verification.run --model graphcast-idr ifs-idr --variable precipitation --metric crps roc reliability cost_loss --lead-day 1 3 5 7 --year 2022 2024 --product chirps
 ```
 
-In either track, `./scripts/run_pipeline.sh` runs all three stages at once, for every truth your country holds.
+In either track, one command in the Spark's terminal runs all three stages at once, for every truth your country holds:
+
+```bash
+bash docker/run.sh pipeline           # runs in the background, even if you log out
+bash docker/run.sh logs pipeline      # follow it (Ctrl-C stops following, not the run)
+```
+
+When it ends, the dashboard restarts by itself: refresh the browser to see the results.
 
 ### 8.1 CRPS: the score of a whole distribution
 
@@ -522,11 +540,7 @@ ForecastCheck picks, for each $\alpha$, the cut-off $p^*$ that gives the best va
 
 ## 9. The Dashboard
 
-```bash
-streamlit run ui/app.py
-```
-
-Open <http://localhost:8501> on your laptop (the SSH tunnel from Section 3 forwards it). If you produce new results while the dashboard is open, restart it: it only discovers files at start-up.
+The dashboard has been running since Section 3 (`bash docker/run.sh start`). Open <http://localhost:8502> on your laptop; the SSH tunnel from Section 3 forwards it. It discovers results when it starts: after `bash docker/run.sh pipeline` it restarts by itself, and after commands you ran yourself, run `bash docker/run.sh restart` and refresh the browser.
 
 The tour below uses the Heat track's screenshots (Senegal). Every country sees the same pages with its own regions and thresholds; Section 9.7 shows what is different in the Rainfall track.
 
@@ -747,17 +761,21 @@ Every number in the dashboard is true *for a given truth product, year, area and
 
 | Symptom | Likely cause | What to do |
 | --- | --- | --- |
-| `ModuleNotFoundError` | The conda environment is not active | `conda activate forecastcheck` |
-| *"cannot read gs://…"* when fetching | The key is not set in this terminal | `export GOOGLE_APPLICATION_CREDENTIALS=/etc/fleet-gcs-key.json` (Section 4.2) |
+| `python: command not found`, or `ModuleNotFoundError` | The command ran in the Spark's terminal, not inside ForecastCheck | Open `bash docker/run.sh shell` first, or prefix it with `bash docker/run.sh run` |
+| *"no 'forecastcheck' image yet"* | The image is not built or loaded on this Spark | `bash docker/run.sh build` (or `load` your trainer's file) |
+| *"Docker is not answering"*, or `Cannot connect to the Docker daemon` | Docker is not running in your account | `systemctl --user restart docker`, as in Demo 1 |
+| *"port is already allocated"* or *"address already in use"* on `start` | Something else uses 8502 (another dashboard, or an SSH tunnel on this machine) | `PORT=8503 bash docker/run.sh start`, and tunnel 8503 instead |
+| *"the data bucket needs a Google Cloud key"* | The key is not set in this terminal | `export GOOGLE_APPLICATION_CREDENTIALS=/etc/fleet-gcs-key.json` (Section 4.2) |
+| *"cannot read gs://…"* when fetching | The key path is wrong, or cannot read the bucket | Check the path in the `export` line (Section 4.2) |
 | *"no country selected"* | `.deployment` is missing | `echo senegal > .deployment` (or `sierra-leone`, `kenya`, `rwanda`) |
 | *"… holds 2 truth products and none is configured"* | `--product` is missing (Heat track) | Add `--product chirts` or `--product era5` |
 | *"unknown truth product …"* | A misspelt `--product` | Use one of the products the message lists (`chirps` for the Rainfall track) |
 | A Heat-track run looks for `precipitation` files | `--variable` is missing | Add `--variable temperature_max` or `temperature_min` |
 | Rainfall values look 24 times too small | The dashboard shows mm/hr | Multiply by 24 for mm/day (Section 6.2) |
 | `SKIP — missing file` for IFS before 2018 | Expected: IFS starts in 2018 | Nothing |
-| New results do not appear in the dashboard | The dashboard caches what it found at start-up | Stop and restart `streamlit run ui/app.py` |
+| New results do not appear in the dashboard | The dashboard caches what it found at start-up | `bash docker/run.sh restart`, then refresh the browser |
 | No altitude selector | `data/{country}/assets/dem.nc` is missing | Re-run the fetch; it prints a note when the DEM is absent |
-| The dashboard does not open on the laptop | No port forward | Reconnect with `ssh -L 8501:localhost:8501 <user>@<spark>` |
+| The dashboard does not open on the laptop | No port forward, or the dashboard is not running | Reconnect with `ssh -L 8502:localhost:8502 <user>@<spark>`; check `bash docker/run.sh status` |
 
 ## Exercises
 
@@ -765,7 +783,7 @@ Work in your country team. Exercises 1–3 run while the pipeline computes; Exer
 
 > #### Exercise 1: Read Before You Download (5 min)
 >
-> 1. Run the fetch script **without** `--apply`. How many files would it fetch, and how many megabytes?
+> 1. Run `bash docker/run.sh fetch` **without** `--apply`. How many files would it fetch?
 > 2. Which lead times are in the bucket? Which one is not in the pipeline commands, and why might that be?
 > 3. Open `config/verification.toml`. Write down your country's thresholds, seasons and altitude bands.
 {: .exercise}
