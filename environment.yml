@@ -10,6 +10,10 @@ channels:
 dependencies:
   - python=3.11
   - pip
+  # Cartopy from conda-forge, not pip: PyPI has no Linux arm64 wheel for it (the DGX
+  # Spark), so pip would compile it, and that fails without a C++ compiler. Same version
+  # as requirements.txt, which then finds it installed.
+  - cartopy=0.25.0
   # gcloud, which scripts/fetch_country.sh uses to read the data bucket.
   - google-cloud-sdk
   - pip:

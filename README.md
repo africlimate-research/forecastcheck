@@ -33,7 +33,31 @@ number.
 
 ---
 
-## Installation
+## Run with Docker (recommended for workshops)
+
+Everything — the Python environment, the Google Cloud CLI, the map data — comes in one
+image, built once. `docker/run.sh` wraps every command, so nobody types Docker flags. It
+needs Docker (rootless Docker on the DGX Spark, Docker Desktop on a laptop); no GPU.
+
+```bash
+git clone https://github.com/africlimate-research/forecastcheck.git
+cd forecastcheck
+bash docker/run.sh build                  # once, ~10 min (or: bash docker/run.sh load FILE)
+echo kenya > .deployment                  # your country: a file name in deployments/
+
+bash docker/run.sh start                  # the dashboard, on http://localhost:8502
+bash docker/run.sh fetch                  # dry run, then: bash docker/run.sh fetch --apply
+bash docker/run.sh pipeline               # all three stages, in the background
+bash docker/run.sh logs pipeline          # follow it; the dashboard refreshes when it ends
+```
+
+From a laptop, tunnel the port first: `ssh -L 8502:localhost:8502 <user>@<machine>`. Any
+single command of the lesson runs as `bash docker/run.sh run python -m …`, and
+`bash docker/run.sh help` lists them all. Data stays in `data/` on the host; a Google Cloud
+key is used only by its path (`export GOOGLE_APPLICATION_CREDENTIALS=…` before the
+command), mounted read-only, and never copied into the image.
+
+## Installation without Docker
 
 Needs [Miniforge](https://github.com/conda-forge/miniforge) (conda). Works on Linux
 (including the DGX Spark) and macOS.
@@ -181,6 +205,7 @@ naming the country and key. Old result files are not deleted; they stop being se
 | `docs/countries/` | one page per country |
 | `docs/demo5/` | the training lesson for Senegal and Sierra Leone (fetch, run, read the dashboard) |
 | `scripts/` | `fetch_country.sh` (data) and `run_pipeline.sh` (whole pipeline), both for this machine's country |
+| `docker/` | the image (`Dockerfile`) and `run.sh`, every command with Docker |
 | `tools/compare_runs.py` | zero-tolerance diff of two output trees |
 | `tests/` | test suite |
 
