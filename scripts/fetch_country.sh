@@ -108,7 +108,10 @@ else
   [ "$SOURCE" != "-" ] || {
     echo "!! deployments for '$COUNTRY' has no data_source: pass --from <folder> instead" >&2
     exit 1; }
-  command -v gcloud >/dev/null || {
+  # gcloud's own libraries warn that Python 3.11 will lose support in 2027; nothing
+  # to act on here, and it buries the messages that matter. Silenced for gcloud only.
+  gcloud() { PYTHONWARNINGS=ignore::FutureWarning command gcloud "$@"; }
+  type -P gcloud >/dev/null || {          # the program on PATH, not the function above
     echo "!! needs the Google Cloud CLI (gcloud), or a local copy passed with --from" >&2
     exit 1; }
   if [ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]; then
@@ -137,12 +140,17 @@ else
 fi
 
 DRY=""; [ "$APPLY" -eq 1 ] || DRY=1
-echo "country: $COUNTRY | source: $SOURCE | into: $DEST | models: ${MODELS//|/, }"
+# Inside Docker (docker/run.sh) the folders are mounted under other names; the wrapper
+# passes the host's names so these messages show what you would type.
+SHOWN_DEST="$DEST"; SHOWN_SOURCE="$SOURCE"
+[ -z "${FETCH_SHOWN_DATA:-}" ] || SHOWN_DEST="$FETCH_SHOWN_DATA/$COUNTRY"
+[ -z "${FETCH_SHOWN_FROM:-}" ] || SHOWN_SOURCE="$FETCH_SHOWN_FROM"
+echo "country: $COUNTRY | source: $SHOWN_SOURCE | into: $SHOWN_DEST | models: ${MODELS//|/, }"
 
 # Listed into variables, not inside `for … in $(…)`: there a failure (no access, wrong
 # path) would be ignored and the run would "succeed" having fetched nothing.
 raw_shapes=$(ls_dirs raw) && truth_shapes=$(ls_dirs target) || {
-  echo "!! cannot read $SOURCE — check the path and your access (see the header of" >&2
+  echo "!! cannot read $SHOWN_SOURCE — check the path and your access (see the header of" >&2
   echo "   this script: GOOGLE_APPLICATION_CREDENTIALS or gcloud auth login)" >&2
   exit 1; }
 
@@ -218,5 +226,5 @@ elif [ "$missing" -gt 0 ]; then
   echo "   if they are skipped again, read the messages above this one." >&2
   exit 1
 else
-  echo "done — data is in $DEST"
+  echo "done — data is in $SHOWN_DEST"
 fi

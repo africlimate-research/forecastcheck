@@ -58,7 +58,7 @@ need_image() {
 # Flags shared by every container: the data, the country, the key, and who writes files.
 common_args() {
   mkdir -p "$DATA/logs"
-  ARGS=(-v "$DATA:/app/data" -e "VERIFICATION_DEPLOYMENT=$(country)")
+  ARGS=(-v "$DATA:/app/data" -e "VERIFICATION_DEPLOYMENT=$(country)" -e "FETCH_SHOWN_DATA=$DATA")
   if [ "${DEV:-0}" = 1 ]; then ARGS+=(-v "$HERE:/app"); fi
   if [ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]; then
     [ -r "$GOOGLE_APPLICATION_CREDENTIALS" ] \
@@ -137,12 +137,20 @@ case "$cmd" in
               || echo "dashboard was not running" ;;
   status)   status ;;
   fetch)
+    # Reading the bucket needs a key by its path; a gcloud login on this machine is not
+    # visible inside the container. Say so now, not after a container has started.
+    case " $* " in
+      *" --from "*) ;;
+      *) [ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ] || die "the data bucket needs a Google Cloud key, given by its path:
+     export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json     (DGX Spark: /etc/fleet-gcs-key.json)
+   then run this command again. (Or fetch a local copy: bash docker/run.sh fetch --from <folder>)" ;;
+    esac
     # --from DIR: that folder is mounted read-only at /import, and only for this command.
     extra=(); CMD=(./scripts/fetch_country.sh)
     while [ $# -gt 0 ]; do
       if [ "$1" = --from ]; then
         dir="$(cd "${2:?--from needs a folder}" && pwd)" || die "no such folder: ${2:-}"
-        extra=(-v "$dir:/import:ro"); CMD+=(--from /import); shift 2
+        extra=(-v "$dir:/import:ro" -e "FETCH_SHOWN_FROM=$dir"); CMD+=(--from /import); shift 2
       else
         CMD+=("$1"); shift
       fi
