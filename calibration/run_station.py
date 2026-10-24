@@ -38,6 +38,8 @@ from pathlib import Path
 import numpy as np
 import xarray as xr
 
+from calibration.training import describe as describe_training
+from calibration.training import stack_training_years
 from verification import provenance as _provenance
 from verification.store import CountryStore as _CountryStore
 from verification.store import exceedance_thresholds as _exceedance_thresholds
@@ -218,12 +220,6 @@ def _load_obs(year: int, obs_dir=None):
     return obs["total_precipitation_rate"] * _MM_DAY_TO_MM_HR
 
 
-def _stack_years(years, load_one):
-    """Concatenate per-year arrays along time (sorted, de-duplicated)."""
-    arrs = [load_one(y) for y in years]
-    return xr.concat(arrs, dim="time").sortby("time").drop_duplicates("time")
-
-
 def calibrate_lead(model, lead_day, train_years, test_year, use_parallel, n_jobs,
                    thresholds=None):
     """Calibrate one lead at stations; write the per-lead file. Returns (path, result).
@@ -235,8 +231,13 @@ def calibrate_lead(model, lead_day, train_years, test_year, use_parallel, n_jobs
     thresholds = list(default_thresholds_mm_day() if thresholds is None else thresholds)
     lead_hours = lead_day * 24
 
-    x_tr = _stack_years(train_years, lambda y: _load_forecast(y, model, lead_hours))
-    y_tr = _stack_years(train_years, _load_obs)
+    # The training years that have data; a year with no forecast or no gauge record is
+    # left out, not fatal (a gauge network often starts later than the forecasts).
+    x_tr, y_tr, used_years = stack_training_years(
+        train_years, lambda y: _load_forecast(y, model, lead_hours), _load_obs)
+    note = describe_training(train_years, used_years)
+    if note:
+        print(f"  lead {lead_day}d: {note}")
     x_tr, y_tr = align_stations(x_tr, y_tr)
 
     x_te, y_te = align_stations(_load_forecast(test_year, model, lead_hours),
@@ -256,7 +257,7 @@ def calibrate_lead(model, lead_day, train_years, test_year, use_parallel, n_jobs
     _provenance.stamp(
         result, stage="calibration", target="station", variable=_VARIABLE,
         model=model, lead_hours=lead_hours, test_year=test_year,
-        train_years=list(train_years), thresholds_mm_day=list(thresholds),
+        train_years=list(used_years), thresholds_mm_day=list(thresholds),
         min_valid=_MIN_VALID, min_wet_days=_MIN_WET_DAYS,
         layout=type(store.layout).__name__, domain=store.domain,
     )

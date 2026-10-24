@@ -10,7 +10,9 @@
 #   bash docker/run.sh fetch [ARGS]       scripts/fetch_country.sh (dry run unless --apply)
 #   bash docker/run.sh fetch --from DIR --apply    add a local folder (a flash disk), read-only
 #   bash docker/run.sh run CMD ...        one command, e.g. run python -m verification.run ...
-#   bash docker/run.sh pipeline           scripts/run_pipeline.sh in the background
+#   bash docker/run.sh pipeline [OPTS]    scripts/run_pipeline.sh in the background: a quick
+#                                         slice (2022, days 1 and 3); --year 2024, --leads 1,3,5,7,
+#                                         --full (everything) ... see scripts/run_pipeline.sh
 #   bash docker/run.sh logs [pipeline]    follow the dashboard's (or the pipeline's) log
 #   bash docker/run.sh status             what is running, for which country, on which port
 #   bash docker/run.sh shell              a terminal inside the image
@@ -106,16 +108,19 @@ pipeline() {
   fi
   common_args
   local log="logs/pipeline-$(country).log"
-  docker run -d --rm --name "$PIPELINE" "${ARGS[@]}" "$IMAGE" bash -c \
-    "set -o pipefail; ./scripts/run_pipeline.sh 2>&1 | tee data/$log;
-     echo \"pipeline finished with exit status \$?\" | tee -a data/$log" >/dev/null
+  # The options (--year, --leads, --full, ...) reach the script as real arguments, not
+  # pasted into the command string, so nothing in them is re-interpreted by a shell.
+  docker run -d --rm --name "$PIPELINE" "${ARGS[@]}" "$IMAGE" bash -c '
+    set -o pipefail; log="data/$1"; shift
+    ./scripts/run_pipeline.sh "$@" 2>&1 | tee "$log"
+    echo "pipeline finished with exit status $?" | tee -a "$log"' _ "$log" "$@" >/dev/null
   # When it ends, restart the dashboard so it sees the new results. Run on this machine,
   # detached, so closing the SSH session does not stop it.
   nohup bash -c "docker wait '$PIPELINE' >/dev/null 2>&1;
                  docker container inspect '$NAME' >/dev/null 2>&1 && docker restart '$NAME'" \
     >/dev/null 2>&1 &
   disown || true
-  echo "Pipeline started for '$(country)'. Follow it:  bash docker/run.sh logs pipeline"
+  echo "Pipeline started for '$(country)' ${*:-(quick: 2022, lead days 1 and 3)}. Follow it:  bash docker/run.sh logs pipeline"
   echo "It runs on if you log out; the dashboard restarts by itself when it ends."
 }
 
@@ -163,7 +168,7 @@ case "$cmd" in
   run)      [ $# -gt 0 ] || die "usage: bash docker/run.sh run COMMAND ..."
             CMD=("$@"); in_image ;;
   shell)    CMD=(bash); in_image ;;
-  pipeline) pipeline ;;
+  pipeline) pipeline "$@" ;;
   logs)
     if [ "${1:-}" = pipeline ]; then
       log="$DATA/logs/pipeline-$(country).log"
