@@ -1,0 +1,15 @@
+# Kept out of the image: data and per-machine settings arrive at run time (docker/run.sh),
+# and anything else here only makes the image bigger or leaks local state.
+data/
+.deployment
+.git/
+.github/
+env/
+.venv/
+**/__pycache__/
+.pytest_cache/
+.DS_Store
+docs/
+*.tar.gz
+CLAUDE.md
+.claude/

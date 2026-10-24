@@ -1,0 +1,46 @@
+# Build the Docker image and run the test suite inside it, so a broken image is found
+# here rather than on a workshop machine. Runs when anything the image is built from
+# changes. CI builds for amd64; the DGX Spark's arm64 image is built from the same
+# Dockerfile on the Spark (docker/run.sh build) or on an arm64 machine.
+name: docker
+
+on:
+  pull_request:
+    paths:
+      - docker/**
+      - .dockerignore
+      - environment.yml
+      - requirements.txt
+      - .github/workflows/docker.yml
+  push:
+    branches: [main]
+    paths:
+      - docker/**
+      - .dockerignore
+      - environment.yml
+      - requirements.txt
+      - .github/workflows/docker.yml
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        run: docker build -t forecastcheck -f docker/Dockerfile .
+      - name: Run the tests inside it
+        # The image leaves tests/ in place; docs/ and data/ are not needed.
+        run: docker run --rm -e VERIFICATION_DEPLOYMENT=none forecastcheck python -m pytest tests/ -q -W ignore::DeprecationWarning
+      - name: The dashboard answers
+        run: |
+          docker run -d --name fc -p 127.0.0.1:8501:8501 forecastcheck
+          for i in $(seq 1 60); do
+            curl -fs http://127.0.0.1:8501/_stcore/health && exit 0
+            sleep 2
+          done
+          docker logs fc; exit 1
