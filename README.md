@@ -113,10 +113,8 @@ python -m verification.run --model graphcast-idr --variable temperature_max --pr
 ```
 
 `--product` names the truth when a country holds more than one (the run stops and lists
-them if you leave it out). `./scripts/run_pipeline.sh` (with Docker: `bash docker/run.sh
-pipeline`) runs the stages for you: by default a quick slice (test year 2022, lead days 1
-and 3), `--year 2024` or `2025` for another test year, `--full` for everything. Training is
-one rule for every country: 2016–2021, each model on the years it has (IFS from 2018).
+them if you leave it out). The country page gives the exact commands — years, models and
+products — for that country, and `./scripts/run_pipeline.sh` runs them all.
 
 **3. Dashboard:**
 

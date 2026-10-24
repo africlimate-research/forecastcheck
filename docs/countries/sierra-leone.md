@@ -47,17 +47,17 @@ split: Falaba, Karene and North West province are absent.
 
 ## Running the pipeline
 
+Sierra Leone holds two truth products, so every run names one with `--product` (`chirts`
+or `era5`). `--variable` is required too: the CLI default is precipitation. One script runs
+every stage for both products and both variables:
+
 ```bash
-bash docker/run.sh pipeline           # quick: Tmax against CHIRTS, test year 2022, lead days 1 and 3
-bash docker/run.sh pipeline --full    # everything: both variables and truths, 2022 and 2024, days 1–7 (about 1.5 h)
+./scripts/run_pipeline.sh
 ```
 
-Training follows one rule for every country: the years 2016–2021, each model on the years it has
-(IFS starts in 2018, so it trains on 2018–2021). `--year 2025` tests one more year with the
-same training. Without Docker, use `./scripts/run_pipeline.sh` with the same options. The commands
-each stage runs are in the lesson (`docs/demo5/`, "Under the hood").
-
 `temperature_min` has no thresholds, so the calibrated pass computes `crps` only for it.
+IFS starts in 2018, so it trains on 2018–2021 where GraphCast trains on 2016–2021; both
+are tested on 2022.
 
 Curves are pooled once per district and summed to provinces at read time. To write
 per-region / per-season curve files explicitly:

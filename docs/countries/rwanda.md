@@ -54,15 +54,31 @@ The altitude bands are cut so each holds a usable share of the land cells
 
 ## Running the pipeline
 
+The models are tested on **2022** (trained on 2018–2021) and **2024** (trained on
+2018–2022); 2023 is left out because IFS has none. One script runs every stage:
+
 ```bash
-bash docker/run.sh pipeline           # quick: CHIRPS, test year 2022, lead days 1 and 3
-bash docker/run.sh pipeline --full    # everything: 2022 and 2024, lead days 1–7 (a few minutes)
+./scripts/run_pipeline.sh
 ```
 
-Training follows one rule for every country: the years 2016–2021, each model on the years it has
-(IFS starts in 2018, so it trains on 2018–2021). `--year 2025` tests one more year with the
-same training. Without Docker, use `./scripts/run_pipeline.sh` with the same options. The commands
-each stage runs are in the lesson (`docs/demo5/`, "Under the hood").
+Or step by step:
+
+```bash
+python -m verification.run --model graphcast ifs --variable precipitation \
+    --metric mae bias pearsonr spearmanr --lead-day 1 3 5 7 \
+    --year 2022 2024 --product chirps
+
+for m in graphcast ifs; do
+  python -m calibration.run --variable precipitation --model $m --leads 1,3,5,7 \
+      --train-years 2018,2019,2020,2021 --test-year 2022 --product chirps
+  python -m calibration.run --variable precipitation --model $m --leads 1,3,5,7 \
+      --train-years 2018,2019,2020,2021,2022 --test-year 2024 --product chirps
+done
+
+python -m verification.run --model graphcast-idr ifs-idr --variable precipitation \
+    --metric crps roc reliability cost_loss --lead-day 1 3 5 7 \
+    --year 2022 2024 --product chirps
+```
 
 Curves are pooled once per district and summed to provinces and the country at read time,
 so regions and seasons need no extra runs.
