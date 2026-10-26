@@ -176,7 +176,6 @@ When you have finished with the dashboard, stop it. Your results stay in `data/`
 bash docker/run.sh stop
 ```
 
-Your country team shares one account on the Spark, so it shares one dashboard and one pipeline: agree on **one person** who runs `start`, `restart`, `stop` and `pipeline`, so nobody stops the dashboard while a teammate is reading it.
 
 | | Senegal | Sierra Leone | Kenya | Rwanda |
 | --- | --- | --- | --- | --- |
