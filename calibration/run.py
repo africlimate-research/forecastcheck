@@ -56,6 +56,8 @@ import argparse
 import numpy as np
 import xarray as xr
 
+from calibration.training import describe as describe_training
+from calibration.training import stack_training_years
 from verification import provenance as _provenance
 from verification.store import VARIABLES as _STORE_VARIABLES
 from verification.store import truth_field as _truth_field
@@ -175,12 +177,6 @@ def _snap_grid(da: xr.DataArray, ref: xr.DataArray) -> xr.DataArray:
     return da
 
 
-def _stack_years(years, load_one) -> xr.DataArray:
-    """Concatenate per-year arrays along time (sorted, de-duplicated)."""
-    arrs = [load_one(y) for y in years]
-    return xr.concat(arrs, dim="time").sortby("time").drop_duplicates("time")
-
-
 def calibrate_lead(variable, model, lead_day, train_years, test_year, use_parallel,
                    n_jobs, thresholds=None):
     """Calibrate one lead of `variable`; write the per-lead output file. Returns (path, result).
@@ -208,9 +204,15 @@ def calibrate_lead(variable, model, lead_day, train_years, test_year, use_parall
     # is snapped onto it so float-repr noise can't shrink the date/grid join.
     ref = _load_forecast(test_year, model, lead_hours, variable)
 
-    # Train: stack years (snapped to ref), intersect forecast & obs on date.
-    x_tr = _stack_years(train_years, lambda y: _snap_grid(_load_forecast(y, model, lead_hours, variable), ref))
-    y_tr = _stack_years(train_years, lambda y: _snap_grid(_load_obs(y, variable), ref))
+    # Train: stack the training years that have data (snapped to ref), intersect
+    # forecast & obs on date. A year with no forecast or no obs is left out, not fatal.
+    x_tr, y_tr, used_years = stack_training_years(
+        train_years,
+        lambda y: _snap_grid(_load_forecast(y, model, lead_hours, variable), ref),
+        lambda y: _snap_grid(_load_obs(y, variable), ref))
+    note = describe_training(train_years, used_years)
+    if note:
+        print(f"  lead {lead_day}d: {note}")
     x_tr, y_tr = xr.align(x_tr, y_tr, join="inner")
 
     # Test.
@@ -242,7 +244,7 @@ def calibrate_lead(variable, model, lead_day, train_years, test_year, use_parall
     _provenance.stamp(
         result, stage="calibration", target="gridded", variable=variable,
         model=model, lead_hours=lead_hours, test_year=test_year,
-        train_years=list(train_years),
+        train_years=list(used_years),      # the years actually trained on
         # the RESOLVED list, not the spec's: thresholds are per country and this run
         # may also have narrowed them with --threshold, and the stamp must record what
         # was actually written rather than what the registry would have defaulted to
