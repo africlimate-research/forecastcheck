@@ -169,6 +169,14 @@ bash docker/run.sh start
 
 Open <http://localhost:8502> on your laptop. The dashboard fills in when the pipeline ends: it restarts by itself, so refresh the browser. To see where the pipeline is, `bash docker/run.sh logs pipeline` (Ctrl-C stops following, not the run).
 
+When you have finished with the dashboard, stop it. Your results stay in `data/`, and `bash docker/run.sh start` brings it back:
+
+```bash
+# 7. When you are done: stop the dashboard (data/ is kept)
+bash docker/run.sh stop
+```
+
+
 | | Senegal | Sierra Leone | Kenya | Rwanda |
 | --- | --- | --- | --- | --- |
 | Whole pipeline | about 1.5 h | about 45 min | about 10 min | under 2 min |
